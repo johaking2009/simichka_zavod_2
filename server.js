@@ -3,9 +3,9 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors"); // <-- Qo'shildi
 
-const usersRoute = require("../routes/user");
-const clientRoute = require("../routes/client");
-const omborRoute = require("../routes/ombor");
+const usersRoute = require("./routes/user");
+const clientRoute = require("./routes/client");
+const omborRoute = require("./routes/ombor");
 
 dotenv.config(); // .env faylni o‘qish
 
