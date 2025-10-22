@@ -28,6 +28,10 @@
     </style>
 </head>
 <body>
+    <script>
+        // Global API base used by all inline scripts. Override by setting window.API_BASE before this script.
+        const BASE_URL = (window.API_BASE && window.API_BASE.replace(/\/$/, '')) || 'http://localhost:5003';
+    </script>
     <div class="main-btns">
         <div>
             <button id="omborBtn">Ombor</button>
@@ -153,7 +157,7 @@
                     <div style="display: flex; gap: 10px;">
                         <div style="background: lch(83.81% 15.82 226.53); padding: 10px; border-radius: 5px; font-weight: bold;">Jami miqdor: <span id="total-kg">0</span> kg</div>
                         <div style="background: lightgreen; padding: 10px; border-radius: 5px; font-weight: bold;">Jami qiymat: <span id="total-value">0.00 $ / 0 so‘m</span></div>
-                        <div style="background: lightgreen; padding: 10px; border-radius: 5px; font-weight: bold;">Foyda: <span id="total-value">0.00 $ / 0 so‘m</span></div>
+                            <div style="background: red ; padding: 10px; border-radius: 5px; font-weight: bold;">Foyda: <span id="total-profit">0.00 $ / 0 so‘m</span></div>
                     </div>
                 </div>
                 <table id="omborTable">
@@ -204,23 +208,26 @@
             navi: item.navi || '',
             ombordagi_mahsulot: '',
             kg_narxi: '',
+            profit_dollar: 0,
+            profit_sum: 0,
             _id: item._id
         }));
     }
-
     // Update backend to clear all fields except navi
     try {
-        const res = await fetch('http://localhost:5000/ombor');
+    const res = await fetch(BASE_URL + '/ombor');
         const omborData = await res.json();
         for (const item of omborData) {
             if (item._id) {
-                await fetch(`http://localhost:5000/ombor/${item._id}`, {
+                await fetch(`${BASE_URL}/ombor/${item._id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         navi: item.navi,
                         ombordagi_mahsulot: '',
-                        kg_narxi: ''
+                        kg_narxi: '',
+                        profit_dollar: 0,
+                        profit_sum: 0
                     })
                 });
             }
@@ -414,7 +421,7 @@
         // Kirimlarni saqlash
         document.getElementById('kirimSaveBtn').onclick = async function() {
             let savedCount = 0;
-            const res = await fetch('http://localhost:5000/ombor');
+            const res = await fetch(BASE_URL + '/ombor');
             const all = await res.json();
             for (let i = 0; i < 20; i++) {
                 const navi = document.getElementById(`kirim-nomi-${i}`).value.trim();
@@ -433,17 +440,17 @@
                             const newNarxi = kg_narxi;
                             const totalMiqdor = oldMiqdor + newMiqdor;
                             const weightedNarxi = totalMiqdor > 0 ? ((oldMiqdor * oldNarxi) + (newMiqdor * newNarxi)) / totalMiqdor : 0;
-                            await fetch(`http://localhost:5000/ombor/${last._id}`, {
+                            await fetch(`${BASE_URL}/ombor/${last._id}`, {
                                 method: 'PUT',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ navi, ombordagi_mahsulot: totalMiqdor, kg_narxi: weightedNarxi })
                             });
                             // Delete duplicates if any
                             for (let j = 0; j < existing.length - 1; j++) {
-                                await fetch(`http://localhost:5000/ombor/${existing[j]._id}`, { method: 'DELETE' });
+                                await fetch(`${BASE_URL}/ombor/${existing[j]._id}`, { method: 'DELETE' });
                             }
                         } else {
-                            await fetch('http://localhost:5000/ombor', {
+                            await fetch(BASE_URL + '/ombor', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ navi, ombordagi_mahsulot, kg_narxi })
@@ -517,7 +524,7 @@
         // Klentlar ro'yxatini olish
         async function fetchKlentlar() {
             try {
-                const res = await fetch('http://localhost:5000/clients');
+                const res = await fetch(BASE_URL + '/clients');
                 klentlar = await res.json();
                 renderKlentlarCards();
                 renderYetkazuvchilarCards();
@@ -575,7 +582,7 @@
         async function deleteKlent(id, event) {
             event.stopPropagation();
             try {
-                await fetch(`http://localhost:5000/clients/${id}`, { method: 'DELETE' });
+                await fetch(`${BASE_URL}/clients/${id}`, { method: 'DELETE' });
                 await fetchKlentlar();
             } catch (err) {
                 alert("Xatolik: Klent o‘chirilmadi");
@@ -583,35 +590,129 @@
             }   
         }
 
-        // Telefon inputlarda faqat raqam kiritish
-        document.getElementById('telefon').addEventListener('input', function(e) {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
-
-        // Klent qo‘shish
-        document.getElementById('klentForm').onsubmit = async function(e) {
-            e.preventDefault();
-            const ism = document.getElementById('ism').value;
-            const telefon = document.getElementById('telefon').value;
-            const type = 'klent';
-            try {
-                const response = await fetch('http://localhost:5000/clients', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ism, telefon, type, jami_qarz_dollar: 0, jami_qarz_sum: 0 })
+        // Telefon inputlarda faqat raqam kiritish (element mavjud bo'lsa bog'lanadi)
+        (function() {
+            const telefonInput = document.getElementById('telefon');
+            if (telefonInput) {
+                telefonInput.addEventListener('input', function(e) {
+                    this.value = this.value.replace(/[^0-9]/g, '');
                 });
-                const newKlent = await response.json();
-                closeModal('createKlentModal');
-                document.getElementById('klentForm').reset();
-                await fetchKlentlar();
-                showKlentInfo(newKlent);
-            } catch (err) {
-                alert("Xatolik: Klent qo'shilmadi");
-                console.error("Klent qo‘shishda xatolik:", err);
             }
-        };
+
+            // Klent qo‘shish (form mavjud bo'lsa bog'lanadi)
+            const klentForm = document.getElementById('klentForm');
+            if (!klentForm) return;
+
+            klentForm.onsubmit = async function(e) {
+                e.preventDefault();
+                const ismEl = document.getElementById('ism');
+                const telefonEl = document.getElementById('telefon');
+                const createBtn = document.getElementById('klentCreateBtn');
+                const ism = ismEl ? ismEl.value.trim() : '';
+                const telefon = telefonEl ? telefonEl.value.trim() : '';
+                const type = 'klent';
+
+                if (!ism) {
+                    alert('Iltimos ism kiriting');
+                    return;
+                }
+
+                // Disable button to prevent double submits
+                if (createBtn) createBtn.disabled = true;
+
+                try {
+                    // Use relative path so it works both locally and when hosted
+                    const url = BASE_URL + '/clients';
+
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ism, telefon, type, jami_qarz_dollar: 0, jami_qarz_sum: 0 })
+                    });
+
+                    if (!response.ok) {
+                        // Try to read error message if present
+                        let msg = 'Klent saqlanmadi';
+                        try { const errBody = await response.json(); if (errBody && (errBody.message || errBody.error)) msg = errBody.message || errBody.error; } catch(e){}
+                        throw new Error(msg);
+                    }
+
+                    const newKlent = await response.json();
+
+                    // If we already have klentlar loaded, append the new one and re-render immediately
+                    if (Array.isArray(klentlar)) {
+                        // Avoid duplicates: check by _id or telefon+ism
+                        const exists = klentlar.some(k => (k._id && newKlent._id && k._id === newKlent._id) || (k.ism === newKlent.ism && k.telefon === newKlent.telefon));
+                        if (!exists) klentlar.push(newKlent);
+                    }
+                    renderKlentlarCards();
+
+                    // Close and reset only after successful save
+                    closeModal('createKlentModal');
+                    klentForm.reset();
+
+                    // Show saved client info (will fetch necessary details inside)
+                    showKlentInfo(newKlent);
+                } catch (err) {
+                    alert("Xatolik: Klent qo'shilmadi - " + (err.message || 'tarmoq xatosi'));
+                    console.error("Klent qo‘shishda xatolik:", err);
+                } finally {
+                    if (createBtn) createBtn.disabled = false;
+                }
+            };
+        })();
 
         // Klent ma'lumotlarini ko‘rsatish
+        // Global API base (see top-of-file BASE_URL)
+
+        // Helper: highlight saved row inputs (green on success, red on error)
+        function highlightRow(i, ok = true) {
+            try {
+                const fieldsList = ["sana","mahsulot_nomi","kg","narx_sum","narx_dollar","jami_pul_sum","jami_summa_dollar","olingan_pul_sum","olingan_pul_dollar","kamomad_pul","ortiqcha_pul"];
+                fieldsList.forEach(f => {
+                    const el = document.getElementById(`row-${f}-${i}`);
+                    if (!el) return;
+                    el.style.transition = 'background-color 0.25s ease';
+                    el.style.backgroundColor = ok ? '#e6ffed' : '#ffdede';
+                    setTimeout(() => { el.style.backgroundColor = ''; }, 1500);
+                });
+            } catch (e) { console.warn('highlightRow error', e); }
+        }
+
+        // Show per-row saved indicator for ombor table
+        function showOmborSaved(i, ok = true) {
+            try {
+                const naviEl = document.getElementById(`ombor-navi-${i}`);
+                if (!naviEl) return;
+                // Remove existing badge if any
+                const existing = document.getElementById(`ombor-saved-${i}`);
+                if (existing) existing.remove();
+                const span = document.createElement('span');
+                span.id = `ombor-saved-${i}`;
+                span.textContent = ok ? 'Saqlandi' : 'Xatolik';
+                span.style.marginLeft = '8px';
+                span.style.padding = '2px 8px';
+                span.style.borderRadius = '12px';
+                span.style.fontSize = '12px';
+                span.style.fontWeight = '700';
+                span.style.color = ok ? '#0b3' : '#fff';
+                span.style.background = ok ? '#e6ffe6' : '#ff4d4d';
+                span.style.border = ok ? '1px solid #0a0' : '1px solid #d00';
+                span.style.transition = 'opacity 0.4s ease';
+                naviEl.parentNode.appendChild(span);
+                // briefly flash the row background as well
+                const row = naviEl.closest('tr');
+                if (row) {
+                    const orig = row.style.backgroundColor;
+                    row.style.transition = 'background-color 0.3s ease';
+                    row.style.backgroundColor = ok ? '#eaffea' : '#ffecec';
+                    setTimeout(() => { row.style.backgroundColor = orig || ''; }, 1200);
+                }
+                // Remove badge after 2s
+                setTimeout(() => { try { const el = document.getElementById(`ombor-saved-${i}`); if (el) el.remove(); } catch(e){} }, 2000);
+            } catch (e) { console.warn('showOmborSaved error', e); }
+        }
+
         async function showKlentInfo(klent) {
             try {
                 await getRates();
@@ -620,7 +721,7 @@
                 let qarzSum = 0;
                 let qarzDollar = 0;
                 try {
-                    const clientRes = await fetch(`http://localhost:5000/clients/${klent._id}`);
+                    const clientRes = await fetch(`${BASE_URL}/clients/${klent._id}`);
                     if (clientRes.ok) {
                         const clientData = await clientRes.json();
                         qarzSum = clientData.jami_qarz_sum || 0;
@@ -729,7 +830,7 @@
 
                 let omborData = [];
                 try {
-                    const omborRes = await fetch('http://localhost:5000/ombor');
+                    const omborRes = await fetch(BASE_URL + '/ombor');
                     omborData = await omborRes.json();
                 } catch (err) {
                     omborData = [];
@@ -841,6 +942,7 @@
                         </tbody>
                     </table>
                     <div style="width:100%;display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin-top:-30px;">
+                        <button id="klentClearBtn" class="tozalash_btn" style="background:#ff6b6b;border:1px solid #cc4b4b;color:#fff;">Klentni tozalash</button>
                         ${updateButton}
                     </div>
                 `;
@@ -905,6 +1007,63 @@
                         }
                     });
                 });
+
+                // Klentni tozalash tugmasi: UI element mavjud bo'lgach, qo'shimcha hodisa
+                const klentClearBtn = document.getElementById('klentClearBtn');
+                if (klentClearBtn) {
+                    klentClearBtn.onclick = async function() {
+                        if (!confirm('Diqqat: bu klentga tegishli barcha qatorlarni tozalashni xohlaysizmi? Bu serverdagi yozuvlarni ham 0/bo‘sh qiladi.')) return;
+                        // Clear UI inputs
+                        for (let i = 0; i < rows.length; i++) {
+                            ['sana','mahsulot_nomi','kg','narx_sum','narx_dollar','jami_pul_sum','jami_summa_dollar','olingan_pul_sum','olingan_pul_dollar','kamomad_pul','ortiqcha_pul'].forEach(f => {
+                                const el = document.getElementById(`row-${f}-${i}`);
+                                if (!el) return;
+                                if (f === 'mahsulot_nomi') {
+                                    if (el.tagName.toLowerCase() === 'select') el.selectedIndex = 0; else el.value = '';
+                                } else {
+                                    el.value = '';
+                                }
+                            });
+                        }
+
+                        // For rows that have an _id, send PUT to clear values server-side
+                        for (let i = 0; i < rows.length; i++) {
+                            const id = rows[i]._id;
+                            if (!id) continue;
+                            const payload = {
+                                mahsulot_nomi: '',
+                                kg: 0,
+                                narx_sum: 0,
+                                narx_dollar: 0,
+                                jami_pul_sum: 0,
+                                jami_summa_dollar: 0,
+                                olingan_pul_sum: 0,
+                                olingan_pul_dollar: 0,
+                                kamomad_pul: 0,
+                                ortiqcha_pul: 0
+                            };
+                            try {
+                                const res = await fetch(BASE_URL + `/users/${id}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(payload)
+                                });
+                                if (!res.ok) {
+                                    console.error('Failed to clear client row', id, await res.text().catch(()=>''));
+                                } else {
+                                    // update local rows original if returned
+                                    const saved = await res.json().catch(()=>null);
+                                    if (saved) rows[i].original = { ...rows[i].original, ...saved };
+                                }
+                            } catch (e) { console.error('Error clearing client row', id, e); }
+                        }
+
+                        // Force recalculation of summary and UI
+                        try { rows.forEach((r, idx) => { try { hisobla(idx); } catch(e){} }); } catch(e){}
+                        try { updateJamiQarz(); } catch(e){}
+                        alert('Klent qatorlari va serverdagi mos yozuvlar tozalandi.');
+                    };
+                }
 
                 function hisobla(i) {
                     const jamiInputSum = document.getElementById(`row-jami_pul_sum-${i}`);
@@ -1097,7 +1256,7 @@
                     let oldQarzSum = 0;
                     let oldQarzDollar = 0;
                     try {
-                        const clientRes = await fetch(`http://localhost:5000/clients/${klent._id}`);
+                        const clientRes = await fetch(`${BASE_URL}/clients/${klent._id}`);
                         if (clientRes.ok) {
                             const clientData = await clientRes.json();
                             oldQarzSum = clientData.jami_qarz_sum || 0;
@@ -1198,21 +1357,146 @@
                             }
                         }
                         // Har doim saqlash (yolkira ham, mahsulot ham)
-                        if (id) {
-                            await fetch(`http://localhost:5000/users/${id}`, {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(rowData)
-                            });
-                            updatedCount++;
-                        } else {
-                            rowData.clientId = klent._id;
-                            await fetch('http://localhost:5000/users', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(rowData)
-                            });
-                            createdCount++;
+                        // Ammo backend schema talablariga mos holda faqat to'liq qatorlarni yuboramiz
+                        try {
+                            // use global BASE_URL
+                            // Required validation: mahsulot_nomi and kg (kg > 0)
+                            // Note: we intentionally do NOT require 'sana' here so that
+                            // other fields can be saved even when the date is empty.
+                            const sanaVal = rowData.sana;
+                            const mahsulotVal = (rowData.mahsulot_nomi || '').toString().trim();
+                            const kgNumber = parseFloat(rowData.kg) || 0;
+
+                            if (!mahsulotVal || kgNumber <= 0) {
+                                // skip saving incomplete row to avoid backend validation errors
+                                continue;
+                            }
+
+                            // normalize rowData before sending
+                            // For existing records (have id) send only changed fields (partial update)
+
+                            if (id) {
+                                // build delta: compare original and current rowData
+                                const delta = {};
+                                const numericFields = ["kg","narx_sum","narx_dollar","jami_pul_sum","jami_summa_dollar","olingan_pul_sum","olingan_pul_dollar","kamomad_pul","ortiqcha_pul"];
+                                fields.forEach(f => {
+                                    let newVal = rowData[f];
+                                    let origVal = original[f];
+                                    // normalize values for comparison
+                                    if (numericFields.includes(f)) {
+                                        newVal = newVal === '' || newVal === null || newVal === undefined ? '' : String(newVal).replace(/,/g, '').replace(/\s/g, '');
+                                        origVal = origVal === '' || origVal === null || origVal === undefined ? '' : String(origVal);
+                                        if (newVal !== '') newVal = Number(newVal);
+                                        if (origVal !== '') origVal = Number(origVal);
+                                    }
+                                    if (f === 'sana') {
+                                        // compare dates in ISO
+                                        if (newVal) newVal = new Date(newVal).toISOString();
+                                        if (origVal && typeof origVal === 'string') origVal = new Date(origVal).toISOString();
+                                    }
+                                    if ((newVal !== '' && newVal !== null && newVal !== undefined && String(newVal) !== String(origVal)) || (newVal === '' && origVal && String(origVal) !== '')) {
+                                        // Prepare value for sending
+                                        if (numericFields.includes(f) && newVal !== '') {
+                                            delta[f] = Number(newVal);
+                                        } else if (f === 'sana') {
+                                            delta[f] = newVal;
+                                        } else {
+                                            delta[f] = newVal;
+                                        }
+                                    }
+                                });
+
+                                // if nothing changed, skip
+                                if (Object.keys(delta).length === 0) continue;
+
+                                try {
+                                    console.log('PUT payload for id', id, delta);
+                                    const res = await fetch(BASE_URL + `/users/${id}`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(delta)
+                                    });
+                                    if (!res.ok) {
+                                        const errBody = await res.text();
+                                        console.error('PUT /users failed for id', id, res.status, errBody);
+                                        highlightRow(i, false);
+                                    } else {
+                                        // get updated object from server and update local row + DOM
+                                        const saved = await res.json();
+                                        updatedCount++;
+                                        // update original data for this row
+                                        rows[i].original = { ...rows[i].original, ...saved };
+                                        // update DOM inputs so values remain after save
+                                        fields.forEach(f => {
+                                            const input = document.getElementById(`row-${f}-${i}`);
+                                            if (!input) return;
+                                            let v = saved[f];
+                                            if (f === 'sana' && v) v = v.split('T')[0];
+                                            if (v === undefined || v === null) v = '';
+                                            input.value = (typeof v === 'number') ? String(v) : v;
+                                        });
+                                        highlightRow(i, true);
+                                    }
+                                } catch (err) {
+                                    console.error('PUT error for id', id, err);
+                                    highlightRow(i, false);
+                                }
+                            } else {
+                                // New record: merge original and rowData, require required fields
+                                const merged = { ...original, ...rowData };
+                                const payload = { ...merged };
+                                if (payload.sana && typeof payload.sana !== 'string') payload.sana = new Date(payload.sana).toISOString();
+                                ["kg","narx_sum","narx_dollar","jami_pul_sum","jami_summa_dollar","olingan_pul_sum","olingan_pul_dollar","kamomad_pul","ortiqcha_pul"].forEach(f => {
+                                    if (payload[f] === undefined || payload[f] === null || payload[f] === '') return;
+                                    const v = payload[f].toString().replace(/,/g, '').replace(/\s/g, '');
+                                    payload[f] = isNaN(Number(v)) ? payload[f] : Number(v);
+                                });
+                                // validate required for new: mahsulot_nomi and kg (>0)
+                                // Do not force 'sana' — allow creating records without a date
+                                const sanaValMerged = payload.sana;
+                                const mahsulotValMerged = (payload.mahsulot_nomi || '').toString().trim();
+                                const kgNumberMerged = parseFloat(payload.kg) || 0;
+                                if (!mahsulotValMerged || kgNumberMerged <= 0) {
+                                    // skip saving incomplete new row
+                                    continue;
+                                }
+                                payload.clientId = klent._id;
+                                try {
+                                    console.log('POST payload for new row', payload);
+                                    const res = await fetch(BASE_URL + '/users', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(payload)
+                                    });
+                                    if (!res.ok) {
+                                        const errBody = await res.text();
+                                        console.error('POST /users failed', res.status, errBody);
+                                        highlightRow(i, false);
+                                    } else {
+                                        // get created object and update local row + DOM
+                                        const created = await res.json();
+                                        createdCount++;
+                                        // set newly created id and original
+                                        rows[i]._id = created._id;
+                                        rows[i].original = { ...created };
+                                        // update DOM inputs to reflect saved values
+                                        fields.forEach(f => {
+                                            const input = document.getElementById(`row-${f}-${i}`);
+                                            if (!input) return;
+                                            let v = created[f];
+                                            if (f === 'sana' && v) v = v.split('T')[0];
+                                            if (v === undefined || v === null) v = '';
+                                            input.value = (typeof v === 'number') ? String(v) : v;
+                                        });
+                                        highlightRow(i, true);
+                                    }
+                                } catch (err) {
+                                    console.error('POST error', err);
+                                    highlightRow(i, false);
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Row save error:', err);
                         }
                     }
                     // Qarz summary ni API ga saqlash
@@ -1240,7 +1524,7 @@
                         }
                     }
                     if (hasRealProduct && (qarzSum !== 0 || qarzDollar !== 0)) {
-                        await fetch(`http://localhost:5000/clients/${klent._id}`, {
+                        await fetch(`${BASE_URL}/clients/${klent._id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ jami_qarz_sum: oldQarzSum + qarzSum, jami_qarz_dollar: oldQarzDollar + qarzDollar })
@@ -1249,7 +1533,7 @@
                     if (updatedCount > 0 || createdCount > 0 || omborUpdates.size > 0) {
                         let omborYangilandi = 0;
                         for (const [omborId, omborObj] of omborUpdates.entries()) {
-                            await fetch(`http://localhost:5000/ombor/${omborId}`, {
+                            await fetch(`${BASE_URL}/ombor/${omborId}`, {
                                 method: 'PUT',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(omborObj)
@@ -1259,13 +1543,13 @@
                         var saveStatus = document.getElementById('saveStatus');
                         if (saveStatus) {
                             saveStatus.style.display = 'block';
-                            setTimeout(function() {
+                            setTimeout(function() {  
                                 saveStatus.style.display = 'none';
                             }, 2000);
                         }
                         await fetchKlentlar();
                         // Fetch the latest mahsulotlar from backend and update UI
-                        const usersRes = await fetch('http://localhost:5000/users');
+                        const usersRes = await fetch(BASE_URL + '/users');
                         if (usersRes.ok) {
                             mahsulotlar = await usersRes.json();
                         }
@@ -1291,7 +1575,7 @@
         // Mahsulotlarni olish
         async function fetchMahsulotlar() {
             try {
-                const res = await fetch('http://localhost:5000/users');
+                const res = await fetch(BASE_URL + '/users');
                 mahsulotlar = await res.json();
             } catch (err) {
                 mahsulotlar = [];
@@ -1304,7 +1588,7 @@
         async function fetchOmborMahsulotlar() {
             try {
                 await getRates();
-                const res = await fetch('http://localhost:5000/ombor');
+                const res = await fetch(BASE_URL + '/ombor');
                 let data = await res.json();
                 // Group by navi to ensure unique
                 let grouped = {};
@@ -1312,15 +1596,30 @@
                     if (item.navi) {
                         const key = item.navi.toLowerCase();
                         if (!grouped[key]) {
-                            grouped[key] = { navi: item.navi, ombordagi_mahsulot: 0, kg_narxi: 0, _id: item._id, count: 0, totalPrice: 0 };
+                            grouped[key] = {
+                                navi: item.navi,
+                                ombordagi_mahsulot: 0,
+                                kg_narxi: 0,
+                                _id: item._id,
+                                count: 0,
+                                totalPrice: 0,
+                                // aggregate saved profits so we don't lose them when grouping
+                                profit_dollar: 0,
+                                profit_sum: 0
+                            };
                         }
                         const miqdor = parseFloat(item.ombordagi_mahsulot) || 0;
                         const narxi = parseFloat(item.kg_narxi) || 0;
+                        const pDollar = parseFloat(item.profit_dollar) || 0;
+                        const pSum = parseFloat(item.profit_sum) || 0;
                         grouped[key].ombordagi_mahsulot += miqdor;
                         grouped[key].totalPrice += miqdor * narxi;
                         grouped[key].count += 1;
                         // Keep the last _id
                         grouped[key]._id = item._id;
+                        // Sum profits from raw records
+                        grouped[key].profit_dollar += pDollar;
+                        grouped[key].profit_sum += pSum;
                     }
                 });
                 // Calculate weighted average
@@ -1330,6 +1629,7 @@
                     } else {
                         grouped[key].kg_narxi = 0;
                     }
+                    // keep profit_dollar and profit_sum aggregated
                     delete grouped[key].totalPrice;
                     delete grouped[key].count;
                 }
@@ -1381,27 +1681,158 @@
                         </select>
                     </td>
                     <td><input type="number" value="${item.ombordagi_mahsulot || ''}" class="excel-input" id="ombor-miqdor-${i}"></td>
-                    <td><input type="text" value="${item.kg_narxi ? formatDollar(item.kg_narxi) : ''}" class="excel-input" id="ombor-narxi-dollar-${i}"></td>
+                    <td><input type="text" value="${item.kg_narxi ? formatDollar(item.kg_narxi) : ''}" class="excel-input" id="ombor-narxi-dollar-${i}" data-original-narxi="${item.kg_narxi || 0}"></td>
                     <td><input type="text" value="${totalValueDollar ? formatSum(totalValueSum) : ''}" class="excel-input" id="ombor-narxi-sum-${i}" readonly></td>
                 `;
                 tbody.appendChild(tr);
             }
+            // O'zgarishlarni eshitish uchun eventlar qo'shish
+            for (let i = 0; i < 20; i++) {
+                const miqdorInput = document.getElementById(`ombor-miqdor-${i}`);
+                const narxiDollarInput = document.getElementById(`ombor-narxi-dollar-${i}`);
+                const narxiSumInput = document.getElementById(`ombor-narxi-sum-${i}`);
+                const naviSelect = document.getElementById(`ombor-navi-${i}`);
+                if (miqdorInput) miqdorInput.addEventListener('input', updateTotals);
+                if (narxiDollarInput) {
+                    narxiDollarInput.addEventListener('input', updateTotals);
+                    narxiDollarInput.addEventListener('focus', function() {
+                        this.value = this.value.replace(/\$/g, '').replace(/\s/g, '');
+                    });
+                    narxiDollarInput.addEventListener('blur', function() {
+                        let val = this.value.replace(/,/g, '.').replace(/[^\d.]/g, '');
+                        if (val) {
+                            let num = parseFloat(val);
+                            let display = num % 1 === 0 ? num : num.toFixed(2).replace(/\.00$/, '');
+                            this.value = display + ' $';
+                        }
+                        updateTotals();
+                        // save the single row when price input loses focus
+                        saveOmborRow(i);
+                    });
+                }
+                // save when quantity loses focus
+                if (miqdorInput) miqdorInput.addEventListener('blur', function() { saveOmborRow(i); });
+                // save when product selection changes
+                if (naviSelect) naviSelect.addEventListener('change', function() { saveOmborRow(i); });
+            }
             updateTotals();
+        }
+
+        // Save a single ombor row to the API (PUT if exists, POST if new)
+        async function saveOmborRow(i) {
+            const item = omborMahsulotlar[i] || { navi: "", ombordagi_mahsulot: "", kg_narxi: 0, _id: null };
+            const naviInput = document.getElementById(`ombor-navi-${i}`);
+            const miqdorInput = document.getElementById(`ombor-miqdor-${i}`);
+            const narxiDollarInput = document.getElementById(`ombor-narxi-dollar-${i}`);
+            if (!naviInput && !miqdorInput && !narxiDollarInput) return;
+
+            const newNavi = naviInput ? naviInput.value : (item.navi || "");
+            const newMiqdor = miqdorInput ? miqdorInput.value : (item.ombordagi_mahsulot || "");
+            let narxStr = narxiDollarInput ? narxiDollarInput.value : '';
+            let newNarxi = 0;
+            if (narxStr && narxStr.includes(',')) {
+                newNarxi = parseFloat(narxStr.replace(',', '.').replace(/[^\d.-]/g, '')) || 0;
+            } else {
+                newNarxi = parseFloat((narxStr || '').replace(/[^\d.-]/g, '')) || 0;
+            }
+
+            function parseNumberStr(val) {
+                if (val === null || typeof val === 'undefined') return 0;
+                const s = String(val).replace(/\$/g, '').replace(/\s/g, '').replace(/,/g, '.');
+                const cleaned = s.replace(/[^0-9.\-]/g, '');
+                return parseFloat(cleaned) || 0;
+            }
+
+            const domMiqdor = parseNumberStr(newMiqdor);
+            const domCurrentPrice = parseNumberStr(narxiDollarInput ? narxiDollarInput.value : newNarxi);
+            const domOriginalPrice = parseNumberStr(narxiDollarInput?.dataset?.originalNarxi) || parseNumberStr(item.kg_narxi);
+            const miqdorNum = domMiqdor || parseNumberStr(item.ombordagi_mahsulot) || 0;
+            const profitDollar = miqdorNum * (domCurrentPrice - domOriginalPrice);
+            const profitSum = usdRate ? profitDollar * usdRate : 0;
+            // existing saved profit (may be aggregated from previous saves)
+            const existingProfit = parseNumberStr(item.profit_dollar) || 0;
+            const existingProfitSum = parseNumberStr(item.profit_sum) || 0;
+
+            try {
+                if (item._id) {
+                    // update existing
+                    // add delta to existing profit so it accumulates across edits
+                    const cumulativeProfitDollar = existingProfit + profitDollar;
+                    const cumulativeProfitSum = existingProfitSum + profitSum;
+                    await fetch(`${BASE_URL}/ombor/${item._id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            navi: newNavi,
+                            ombordagi_mahsulot: newMiqdor,
+                            kg_narxi: newNarxi,
+                            profit_dollar: Math.round((cumulativeProfitDollar + Number.EPSILON) * 100) / 100,
+                            profit_sum: Math.round((cumulativeProfitSum + Number.EPSILON) * 100) / 100
+                        })
+                    });
+                    showOmborSaved(i, true);
+                } else if (newNavi || newMiqdor || newNarxi) {
+                    // create new
+                    await fetch(BASE_URL + '/ombor', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            navi: newNavi,
+                            ombordagi_mahsulot: newMiqdor,
+                            kg_narxi: newNarxi,
+                            profit_dollar: Math.round((profitDollar + Number.EPSILON) * 100) / 100,
+                            profit_sum: Math.round((profitSum + Number.EPSILON) * 100) / 100
+                        })
+                    });
+                    showOmborSaved(i, true);
+                }
+                // Refresh local data so totals and original prices update
+                await fetchOmborMahsulotlar();
+            } catch (err) {
+                console.error('Ombor qatorini saqlashda xatolik:', err);
+                showOmborSaved(i, false);
+            }
         }
 
         function updateTotals() {
             let totalKg = 0;
             let totalValueDollar = 0;
+            let totalProfitDollar = 0;
             for (let i = 0; i < 20; i++) {
-                const miqdor = parseFloat(document.getElementById(`ombor-miqdor-${i}`)?.value) || 0;
-                const narxiDol = parseFloat(document.getElementById(`ombor-narxi-dollar-${i}`)?.value.replace(/[^\d.\-]/g, '')) || 0;
+                const miqdorInput = document.getElementById(`ombor-miqdor-${i}`);
+                const narxiDollarInput = document.getElementById(`ombor-narxi-dollar-${i}`);
+                const narxiSumInput = document.getElementById(`ombor-narxi-sum-${i}`);
+                const miqdor = parseFloat(miqdorInput?.value) || 0;
+                let narxiStr = narxiDollarInput?.value.replace(/\$/g, '').replace(/\s/g, '').replace(/,/g, '.') || '0';
+                const currentNarxi = parseFloat(narxiStr) || 0;
+                const originalNarxi = parseFloat(narxiDollarInput?.dataset.originalNarxi) || 0;
                 totalKg += miqdor;
-                totalValueDollar += miqdor * narxiDol;
+                totalValueDollar += miqdor * currentNarxi;
+                totalProfitDollar += miqdor * (currentNarxi - originalNarxi);
+                // Kg narxi (so‘m) ni yangilash
+                if (narxiSumInput) {
+                    const totalSum = usdRate ? Math.round(miqdor * currentNarxi * usdRate) : 0;
+                    narxiSumInput.value = formatSum(totalSum / miqdor) || '';
+                }
+            }
+            // Qo'shimcha: avval saqlangan ombor yozuvlaridagi profitlarni ham qo'shamiz
+            try {
+                if (Array.isArray(omborMahsulotlar)) {
+                    for (const saved of omborMahsulotlar) {
+                        const p = parseFloat(saved?.profit_dollar) || 0;
+                        totalProfitDollar += p;
+                    }
+                }
+            } catch (e) {
+                // ignore
             }
             document.getElementById('total-kg').innerText = totalKg;
-            const roundedDollar = totalValueDollar.toLocaleString('en-US');
-            const roundedSum = usdRate ? (totalValueDollar * usdRate).toLocaleString('en-US') : 0;
-            document.getElementById('total-value').innerText = roundedDollar + ' $ / ' + roundedSum + ' so‘m';
+            const roundedValueDollar = totalValueDollar.toLocaleString('en-US');
+            const roundedValueSum = usdRate ? (totalValueDollar * usdRate).toLocaleString('en-US') : 0;
+            document.getElementById('total-value').innerText = roundedValueDollar + ' $ / ' + roundedValueSum + ' so‘m';
+            const roundedProfitDollar = totalProfitDollar.toLocaleString('en-US');
+            const roundedProfitSum = usdRate ? (totalProfitDollar * usdRate).toLocaleString('en-US') : 0;
+            document.getElementById('total-profit').innerText = roundedProfitDollar + ' $ / ' + roundedProfitSum + ' so‘m';
         }
         // Ombor yangilash
         document.getElementById('omborUpdateBtn').onclick = async function() {
@@ -1414,31 +1845,74 @@
                 const narxiDollarInput = document.getElementById(`ombor-narxi-dollar-${i}`);
                 const newNavi = naviInput.value;
                 const newMiqdor = miqdorInput.value;
-                const narxStr = narxiDollarInput.value;
+                let narxStr = narxiDollarInput.value;
                 let newNarxi = 0;
                 if (narxStr.includes(',')) {
                     newNarxi = parseFloat(narxStr.replace(',', '.').replace(/[^\d.-]/g, '')) || 0;
                 } else {
                     newNarxi = parseFloat(narxStr.replace(/[^\d.-]/g, '')) || 0;
                 }
-                const hasChanges = newNavi !== (item.navi || "") || newMiqdor !== (item.ombordagi_mahsulot?.toString() || "") || newNarxi !== (item.kg_narxi || 0);
+                // Determine changes: for numeric fields treat a difference of 1 (or more) as a meaningful change
+                const origMiqdorNum = parseFloat(item.ombordagi_mahsulot) || 0;
+                const newMiqdorNum = parseFloat(newMiqdor) || 0;
+                const origNarxiNum = parseFloat(item.kg_narxi) || 0;
+                const qtyDiff = Math.abs(newMiqdorNum - origMiqdorNum);
+                const priceDiff = Math.abs(newNarxi - origNarxiNum);
+                const hasChanges = (
+                    newNavi !== (item.navi || "") ||
+                    qtyDiff >= 1 ||         // trigger if quantity changed by at least 1 unit
+                    priceDiff >= 1 ||       // trigger if kg price changed by at least 1 (dollar) unit
+                    (!item._id && (newNavi || newMiqdor || newNarxi)) // new item with any value
+                );
                 try {
+                    // Compute profit based on the actual DOM inputs (so it matches what's displayed)
+                    function parseNumberStr(val) {
+                        if (val === null || typeof val === 'undefined') return 0;
+                        const s = String(val).replace(/\$/g, '').replace(/\s/g, '').replace(/,/g, '.');
+                        const cleaned = s.replace(/[^0-9.\-]/g, '');
+                        return parseFloat(cleaned) || 0;
+                    }
+
+                    // Read values from DOM to match updateTotals calculations
+                    const domMiqdor = miqdorInput ? parseNumberStr(miqdorInput.value) : 0;
+                    const domCurrentPrice = narxiDollarInput ? parseNumberStr(narxiDollarInput.value) : parseNumberStr(newNarxi);
+                    const domOriginalPrice = parseNumberStr(narxiDollarInput?.dataset?.originalNarxi) || parseNumberStr(item.kg_narxi);
+
+                    const miqdorNum = domMiqdor || parseNumberStr(item.ombordagi_mahsulot) || 0;
+                    const profitDollar = miqdorNum * (domCurrentPrice - domOriginalPrice);
+                    const profitSum = usdRate ? profitDollar * usdRate : 0;
+
                     if (hasChanges && item._id) {
-                        await fetch(`http://localhost:5000/ombor/${item._id}`, {
+                        await fetch(`${BASE_URL}/ombor/${item._id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ navi: newNavi, ombordagi_mahsulot: newMiqdor, kg_narxi: newNarxi })
+                            body: JSON.stringify({
+                                navi: newNavi,
+                                ombordagi_mahsulot: newMiqdor,
+                                kg_narxi: newNarxi,
+                                profit_dollar: Math.round((profitDollar + Number.EPSILON) * 100) / 100,
+                                profit_sum: Math.round((profitSum + Number.EPSILON) * 100) / 100
+                            })
                         });
                         updatedCount++;
+                        showOmborSaved(i, true);
                     } else if (hasChanges && !item._id && (newNavi || newMiqdor || newNarxi)) {
-                        await fetch('http://localhost:5000/ombor', {
+                        await fetch(BASE_URL + '/ombor', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ navi: newNavi, ombordagi_mahsulot: newMiqdor, kg_narxi: newNarxi })
+                            body: JSON.stringify({
+                                navi: newNavi,
+                                ombordagi_mahsulot: newMiqdor,
+                                kg_narxi: newNarxi,
+                                profit_dollar: Math.round((profitDollar + Number.EPSILON) * 100) / 100,
+                                profit_sum: Math.round((profitSum + Number.EPSILON) * 100) / 100
+                            })
                         });
                         createdCount++;
+                        showOmborSaved(i, true);
                     }
                 } catch (err) {
+                    showOmborSaved(i, false);
                     alert("Ombor ma'lumotlarini yangilashda xatolik");
                     console.error("Ombor ma'lumotlarini yangilashda xatolik:", err);
                 }
@@ -1458,10 +1932,31 @@
             let narxStr = document.getElementById('omborNarxi').value.replace(',', '.');
             const kg_narxi = parseFloat(narxStr.replace(/[^\d.-]/g, '')) || 0;
             try {
-                await fetch('http://localhost:5000/ombor', {
+                // compute profit for new item: try to find existing original price for this navi
+                function parseNumberStr(val) {
+                    if (val === null || typeof val === 'undefined') return 0;
+                    const s = String(val).replace(/\$/g, '').replace(/\s/g, '').replace(/,/g, '.');
+                    const cleaned = s.replace(/[^0-9.\-]/g, '');
+                    return parseFloat(cleaned) || 0;
+                }
+                const q = parseNumberStr(ombordagi_mahsulot);
+                const enteredPrice = parseNumberStr(kg_narxi);
+                // find existing record for same navi to use as original price
+                const existing = Array.isArray(omborMahsulotlar) ? omborMahsulotlar.find(x => x.navi && x.navi.toLowerCase() === (navi || '').toLowerCase()) : null;
+                const origPrice = existing ? parseNumberStr(existing.kg_narxi) : 0;
+                const profitDollar = q * (enteredPrice - origPrice);
+                const profitSum = usdRate ? profitDollar * usdRate : 0;
+
+                await fetch(BASE_URL + '/ombor', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ navi, ombordagi_mahsulot, kg_narxi })
+                    body: JSON.stringify({
+                        navi,
+                        ombordagi_mahsulot,
+                        kg_narxi,
+                        profit_dollar: Math.round((profitDollar + Number.EPSILON) * 100) / 100,
+                        profit_sum: Math.round((profitSum + Number.EPSILON) * 100) / 100
+                    })
                 });
                 closeModal('omborAddModal');
                 document.getElementById('omborForm').reset();
@@ -1508,7 +2003,7 @@
 
         async function renderOmborSelect() {
             try {
-                const res = await fetch('http://localhost:5000/ombor');
+                const res = await fetch(BASE_URL + '/ombor');
                 const mahsulotlar = await res.json();
                 const select = document.getElementById('mahsulotNomi');
                 if (!select) return;

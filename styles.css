@@ -793,7 +793,19 @@ body.side-modal-open::after {
     border-radius: 8px;
     box-shadow: 0 1px 4px rgb(0, 0, 0);
     right: 2%;
-    bottom: 3%;
+    bottom: 10%;
+    width: 200px;
+    height: 40px;
+    font-size: 19px;
+}
+
+.tozalash_btn{
+     position: absolute;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgb(0, 0, 0);
+    right: 2%;
+    bottom: 3%;     
     width: 200px;
     height: 40px;
     font-size: 19px;

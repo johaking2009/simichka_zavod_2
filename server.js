@@ -15,6 +15,11 @@ const app = express();
 app.use(express.json());
 app.use(cors()); // <-- Qo'shildi
 
+// Serve static frontend (index.html + styles) from project root
+const path = require('path');
+const publicDir = path.join(__dirname);
+app.use(express.static(publicDir));
+
 // MongoDB ga ulanish
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB ulandi"))
@@ -22,8 +27,24 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Routerni ulash
 app.use("/users", usersRoute);
+// Alias so frontend can call /mahsulotlar (same as /users)
+app.use("/mahsulotlar", usersRoute);
 app.use("/clients", clientRoute);
 app.use("/ombor", omborRoute);
+
+// Serve index.html for root and unknown routes (so Vercel and browser can load frontend)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(publicDir, 'index.html'));
+});
+
+// Optional: fallback for other routes (single page apps)
+app.get('*', (req, res) => {
+  // if the request is for an API route, skip
+  if (req.path.startsWith('/users') || req.path.startsWith('/clients') || req.path.startsWith('/ombor') || req.path.startsWith('/mahsulotlar')) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  res.sendFile(path.join(publicDir, 'index.html'));
+});
 
 // Serverni ishga tushirish
 const PORT = process.env.PORT || 5000;

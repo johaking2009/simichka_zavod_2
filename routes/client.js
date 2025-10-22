@@ -23,6 +23,17 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Bitta clientni olish (ID bo'yicha)
+router.get('/:id', async (req, res) => {
+  try {
+    const client = await Client.findById(req.params.id);
+    if (!client) return res.status(404).json({ error: 'Client topilmadi' });
+    res.json(client);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Clientni yangilash (edit)
 router.put('/:id', async (req, res) => {
   try {
