@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Layout Project</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Rasxot header cell blue background */
+        .excel-table th.rasxot-header {
+            background-color: #e2eff1 !important;
+        }
+        .excel-table th:nth-child(6),
+        .excel-table th:nth-child(8),
+        .excel-table th:nth-child(10) {
+            background-color: #F5C018F7;
+        }
+        .excel-table td:nth-child(6),
+        .excel-table td:nth-child(8),
+        .excel-table td:nth-child(10) {
+            background-color: #ffffff;
+        }
+        /* Rasxot column (7th for kirim table) */
+        .excel-table th:nth-child(6),
+        .excel-table td:nth-child(6) {
+            background-color: #f5fdff;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-btns">
+        <div>
+            <button id="omborBtn">Ombor</button>
+        </div>
+        <div>
+            <button id="klentlarBtn">Klentlar</button>
+        </div>
+        <div>
+            <button id="kirimBtn">Omborga kirim</button>
+        </div>
+    </div>
+
+    <!-- Omborga kirim modal -->
+    <div class="modal" id="kirimModal" style="display:none;">
+    <div class="modal-content" style="width:100vw; height:100vh; margin:0; max-height:none; overflow-y:auto; background:#fff; box-shadow:none;">
+            <button class="close-btn" onclick="closeModal('kirimModal')">X</button>
+            <div class="table-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div class="center-title">Omborga kirim</div>
+                </div>
+                <table id="kirimTable" class="excel-table">
+                    <thead style="background:none;">
+                        <tr style="background:none;">
+                            <th>№</th>
+                            <th>Nomi</th>
+                            <th>Miqdor (kg)</th>
+                            <th>Kg narxi ($)</th>
+                            <th>Jami qiymat ($)</th>
+                            <th class="rasxot-header">Rasxot ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody style="background:none;">
+                        <script>
+        // Rasxot ($) inputiga dollar belgisi: faqat blurda ko'rsatiladi, inputda o'chadi
+        document.addEventListener('DOMContentLoaded', function() {
+            for (let i = 0; i < 20; i++) {
+                const rasxotDollarInput = document.getElementById(`kirim-rasxot-dollar-${i}`);
+                if (rasxotDollarInput) {
+                    function formatDollar() {
+                        let val = rasxotDollarInput.value.replace(/\$/g, '').replace(/\s/g, '');
+                        if (val) {
+                            rasxotDollarInput.value = val + ' $';
+                        } else {
+                            rasxotDollarInput.value = '';
+                        }
+                    }
+                    rasxotDollarInput.addEventListener('input', formatDollar);
+                    rasxotDollarInput.addEventListener('focus', function() {
+                        rasxotDollarInput.value = rasxotDollarInput.value.replace(/\$/g, '').replace(/\s/g, '');
+                    });
+                    rasxotDollarInput.addEventListener('blur', formatDollar);
+                }
+            }
+
+            // Omborni tozalash button for kirim modal
+            var kirimClearBtn = document.createElement('button');
+            kirimClearBtn.id = 'kirimClearBtn';
+            kirimClearBtn.textContent = 'Omborni tozalash';
+            kirimClearBtn.className = 'yangilash_btn';
+            kirimClearBtn.style.marginBottom = '45px';
+            var kirimTableSection = document.querySelector('#kirimModal .table-section');
+            if (kirimTableSection) {
+                kirimTableSection.insertBefore(kirimClearBtn, kirimTableSection.querySelector('table'));
+            }
+            kirimClearBtn.onclick = function() {
+                for (let i = 0; i < 20; i++) {
+                    let nomiInput = document.getElementById(`kirim-nomi-${i}`);
+                    let miqdorInput = document.getElementById(`kirim-miqdor-${i}`);
+                    let narxiInput = document.getElementById(`kirim-narxi-${i}`);
+                    let jamiInput = document.getElementById(`kirim-jami-${i}`);
+                    let rasxotInput = document.getElementById(`kirim-rasxot-dollar-${i}`);
+                    if (nomiInput) nomiInput.value = '';
+                    if (miqdorInput) miqdorInput.value = '';
+                    if (narxiInput) narxiInput.value = '';
+                    if (jamiInput) jamiInput.value = '';
+                    if (rasxotInput) rasxotInput.value = '';
+                }
+                localStorage.removeItem('kirimModalData');
+            };
+
+            // Save kirim modal data to localStorage on input change
+            for (let i = 0; i < 20; i++) {
+                ['kirim-nomi-', 'kirim-miqdor-', 'kirim-narxi-', 'kirim-jami-', 'kirim-rasxot-dollar-'].forEach(function(prefix) {
+                    let input = document.getElementById(prefix + i);
+                    if (input) {
+                        input.addEventListener('input', function() {
+                            let data = localStorage.getItem('kirimModalData');
+                            data = data ? JSON.parse(data) : {};
+                            data[prefix + i] = input.value;
+                            localStorage.setItem('kirimModalData', JSON.stringify(data));
+                        });
+                    }
+                });
+            }
+        });
+                        for (let i = 0; i < 20; i++) {
+                            document.write(`
+                                <tr style='background:none;'>
+                                    <td>${i+1}</td>
+                                    <td><input type="text" class="excel-input" id="kirim-nomi-${i}"></td>
+                                    <td><input type="number" class="excel-input" id="kirim-miqdor-${i}"></td>
+                                    <td><input type="text" class="excel-input" id="kirim-narxi-${i}" readonly></td>
+                                    <td><input type="text" class="excel-input" id="kirim-jami-${i}"></td>
+                                    <td><input type="text" class="excel-input" id="kirim-rasxot-dollar-${i}"></td>
+                                </tr>
+                            `);
+                        }
+                        </script>
+                    </tbody>
+                </table>
+                <!-- Rasxot input -->
+                <button id="kirimSaveBtn" class="yangilash_btn" style="margin-top:18px; float:right;">Saqlash</button>
+            </div>
+        </div>
+    </div>
+    </div>
+    <div class="modal" id="omborModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('omborModal')">X</button>
+            <div class="table-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div class="center-title">Ombor mahsulotlari</div>
+                    <div style="display: flex; gap: 10px;">
+                        <div style="background: lch(83.81% 15.82 226.53); padding: 10px; border-radius: 5px; font-weight: bold;">Jami miqdor: <span id="total-kg">0</span> kg</div>
+                        <div style="background: lightgreen; padding: 10px; border-radius: 5px; font-weight: bold;">Jami qiymat: <span id="total-value">0.00 $ / 0 so‘m</span></div>
+                        <div style="background: lightgreen; padding: 10px; border-radius: 5px; font-weight: bold;">Foyda: <span id="total-value">0.00 $ / 0 so‘m</span></div>
+                    </div>
+                </div>
+                <table id="omborTable">
+                    <thead>
+                        <tr>
+                            <th>№</th>
+                            <th>Nomi</th>
+                            <th>Omborda bor mahsulotlar</th>
+                            <th>Kg narxi ($)</th>
+                            <th>Kg narxi (so‘m)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <button id="omborUpdateBtn" class="yangilash_btn">Saqlash</button>
+            </div>
+        </div>
+    </div>
+
+        <script>
+        // Omborni tozalash button logic (faqat nomi va id qoldiradi)
+        document.addEventListener('DOMContentLoaded', function() {
+            var omborClearBtn = document.createElement('button');
+            omborClearBtn.id = 'omborClearBtn';
+            omborClearBtn.textContent = 'Omborni tozalash';
+            omborClearBtn.className = 'yangilash_btn';
+            omborClearBtn.style.marginBottom = '45px';
+            var omborTableSection = document.querySelector('#omborModal .table-section');
+            if (omborTableSection) {
+                omborTableSection.insertBefore(omborClearBtn, omborTableSection.querySelector('table'));
+            }
+            omborClearBtn.onclick = async function() {
+    // Clear inputs in the frontend (except navi)
+    for (let i = 0; i < 20; i++) {
+        const naviInput = document.getElementById(`ombor-navi-${i}`);
+        const miqdorInput = document.getElementById(`ombor-miqdor-${i}`);
+        const narxiDollarInput = document.getElementById(`ombor-narxi-dollar-${i}`);
+        const narxiSumInput = document.getElementById(`ombor-narxi-sum-${i}`);
+        if (miqdorInput) miqdorInput.value = '';
+        if (narxiDollarInput) narxiDollarInput.value = '';
+        if (narxiSumInput) narxiSumInput.value = '';
+    }
+
+    // Update window.omborMahsulotlar to keep only navi and _id
+    if (window.omborMahsulotlar) {
+        window.omborMahsulotlar = window.omborMahsulotlar.map(item => ({
+            navi: item.navi || '',
+            ombordagi_mahsulot: '',
+            kg_narxi: '',
+            _id: item._id
+        }));
+    }
+
+    // Update backend to clear all fields except navi
+    try {
+        const res = await fetch('http://localhost:5000/ombor');
+        const omborData = await res.json();
+        for (const item of omborData) {
+            if (item._id) {
+                await fetch(`http://localhost:5000/ombor/${item._id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        navi: item.navi,
+                        ombordagi_mahsulot: '',
+                        kg_narxi: ''
+                    })
+                });
+            }
+        }
+        await fetchOmborMahsulotlar(); // Refresh data
+        renderOmborTable(); // Re-render table
+        updateTotals(); // Update totals
+    } catch (err) {
+        console.error('Omborni tozalashda xatolik:', err);
+        alert('Omborni tozalashda xatolik yuz berdi!');
+    }
+};
+        });
+        </script>
+
+    <div class="modal" id="klentlarModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('klentlarModal')">X</button>
+            <div class="center-title" style="flex:1; text-align:center;">Klentlar</div>
+            <div class="modal-flex">
+                <div class="table-section">
+                    <div class="top-bar">
+                        <div id="klentMenuIcon" class="menu-icon" style="cursor:pointer;">
+                            <img src="https://cdn-icons-png.flaticon.com/512/1828/1828859.png" alt="menu" width="28" height="28"/>
+                        </div>
+                    </div>
+                    <div id="klentlarCards" class="klentlar-cards"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="createKlentModal">
+        <div class="modal-content-user_add">
+            <button class="close-btn" onclick="closeModal('createKlentModal')">X</button>
+            <form id="klentForm">
+                <div class="center-title">Yangi klent qo‘shish</div>
+                <input type="hidden" id="klentType" value="klent">
+                <label>Ism:<br><input type="text" id="ism" required></label><br><br>
+                <label>Telefon raqam:<br><input type="text" id="telefon" required pattern="[0-9]+" inputmode="numeric"></label><br><br>
+                <button type="submit" class="open-products-btn" id="klentCreateBtn">Yaratish</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="klentInfoModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('klentInfoModal')">X</button>
+            <div id="saveStatus" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#4caf50;color:#fff;padding:8px 24px;border-radius:6px;font-size:1.2em;z-index:1000;box-shadow:0 2px 8px #0002;">Saqlandi</div>
+            <div id="klentInfoExcel" class="klent-info-excel"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="omborAddModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('omborAddModal')">X</button>
+            <div class="center-title">Omborga mahsulot qo‘shish</div>
+            <form id="omborForm">
+                <label>Navi:<br><input type="text" id="omborNavi" required></label><br><br>
+                <label>Omborda bor mahsulotlar (kg):<br><input type="number" id="omborMiqdor" required></label><br><br>
+                <label>Kg narxi ($):<br><input type="text" id="omborNarxi" required></label><br><br>
+                <button type="submit" class="open-products-btn">Qo‘shish</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="side-modal" id="sideModal">
+        <div class="side-modal-content">
+            <button class="close-btn" onclick="closeSideModal('sideModal')">X</button>
+            <div class="center-title">Klentlar menyusi</div>
+            <div class="side-btns">
+                <button id="sideCreateBtn" class="open-products-btn">Klentni qo'shish</button>
+                <button id="sideDeleteBtn" class="open-products-btn">Klentni o'chirish</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Ombor mahsulotlarini tanlashda narxni avtomatik chiqarish (kirim modal)
+        function getLastOmborNarxi(navi) {
+            if (!window.omborMahsulotlar) return '';
+            // Find last product with this name and return its kg_narxi
+            for (let i = window.omborMahsulotlar.length - 1; i >= 0; i--) {
+                const item = window.omborMahsulotlar[i];
+                if (item.navi && item.navi.toLowerCase() === navi.toLowerCase()) {
+                    return item.kg_narxi || '';
+                }
+            }
+            return '';
+        }
+
+        // Kirim modal uchun narxni avtomatik to'ldirish
+    for (let i = 0; i < 20; i++) {
+            const nomiInput = document.getElementById(`kirim-nomi-${i}`);
+            const narxiInput = document.getElementById(`kirim-narxi-${i}`);
+            if (nomiInput && narxiInput) {
+                nomiInput.addEventListener('blur', function() {
+                    const navi = nomiInput.value.trim();
+                    if (navi) {
+                        // omborMahsulotlar global bo'lishi kerak
+                        const narx = getLastOmborNarxi(navi);
+                        if (narx) narxiInput.value = narx;
+                    }
+                });
+            }
+        }
+        // Omborga kirim bo'limi uchun modal ochish
+        document.getElementById('kirimBtn').onclick = function() {
+            document.getElementById('kirimModal').style.display = 'flex';
+            // Restore kirim modal data from localStorage
+            let data = localStorage.getItem('kirimModalData');
+            data = data ? JSON.parse(data) : {};
+            for (let i = 0; i < 20; i++) {
+                ['kirim-nomi-', 'kirim-miqdor-', 'kirim-jami-', 'kirim-rasxot-dollar-'].forEach(function(prefix) {
+                    let input = document.getElementById(prefix + i);
+                    if (input && typeof data[prefix + i] !== 'undefined') {
+                        input.value = data[prefix + i];
+                    }
+                });
+                // Recalculate and display Kg narxi ($)
+                let miqdorInput = document.getElementById(`kirim-miqdor-${i}`);
+                let jamiInput = document.getElementById(`kirim-jami-${i}`);
+                let rasxotInput = document.getElementById(`kirim-rasxot-dollar-${i}`);
+                let narxiInput = document.getElementById(`kirim-narxi-${i}`);
+                if (miqdorInput && jamiInput && rasxotInput && narxiInput) {
+                    const miqdor = parseFloat(miqdorInput.value) || 0;
+                    let jamiStr = jamiInput.value.replace(/\$/g, '').replace(/\s/g, '').replace(/,/g, '.');
+                    const jami = parseFloat(jamiStr) || 0;
+                    let rasxotStr = rasxotInput.value.replace(/\$/g, '').replace(/\s/g, '').replace(/,/g, '.');
+                    const rasxot = parseFloat(rasxotStr) || 0;
+                    if (miqdor > 0) {
+                        const narxi = (jami + rasxot) / miqdor;
+                        let displayNarxi = narxi % 1 === 0 ? narxi : narxi.toFixed(2).replace(/\.00$/, '');
+                        narxiInput.value = displayNarxi + ' $';
+                    } else {
+                        narxiInput.value = '';
+                    }
+                }
+            }
+        };
+
+        // Kirim modalni yopish
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        // Kirim jadvalida kg narxi hisoblash: (jami qiymat + rasxot) / miqdor
+        for (let i = 0; i < 20; i++) {
+            const miqdorInput = document.getElementById(`kirim-miqdor-${i}`);
+            const jamiInput = document.getElementById(`kirim-jami-${i}`);
+            const rasxotInput = document.getElementById(`kirim-rasxot-dollar-${i}`);
+            const narxiInput = document.getElementById(`kirim-narxi-${i}`);
+
+            const updateNarxi = function() {
+                const miqdor = parseFloat(miqdorInput.value) || 0;
+                let jamiStr = jamiInput.value.replace(/\$/g, '').replace(/\s/g, '').replace(/,/g, '.');
+                const jami = parseFloat(jamiStr) || 0;
+                let rasxotStr = rasxotInput.value.replace(/\$/g, '').replace(/\s/g, '').replace(/,/g, '.');
+                const rasxot = parseFloat(rasxotStr) || 0;
+
+                if (miqdor > 0) {
+                    const narxi = (jami + rasxot) / miqdor;
+                    let displayNarxi = narxi % 1 === 0 ? narxi : narxi.toFixed(2).replace(/\.00$/, '');
+                    narxiInput.value = displayNarxi + ' $';
+                } else {
+                    narxiInput.value = '';
+                }
+            };
+
+            // Jami qiymat va rasxot uchun formatlash
+            [jamiInput, rasxotInput].forEach(input => {
+                input.addEventListener('focus', function() {
+                    input.value = input.value.replace(/\$/g, '').replace(/\s/g, '');
+                });
+                input.addEventListener('blur', function() {
+                    let val = input.value.replace(/,/g, '.').replace(/[^\d.]/g, '');
+                    if (val) {
+                        let num = parseFloat(val);
+                        let display = num % 1 === 0 ? num : num.toFixed(2).replace(/\.00$/, '');
+                        input.value = display + ' $';
+                    }
+                    updateNarxi();
+                });
+            });
+
+            miqdorInput.addEventListener('input', updateNarxi);
+            jamiInput.addEventListener('input', updateNarxi);
+            rasxotInput.addEventListener('input', updateNarxi);
+        }
+
+        // Kirimlarni saqlash
+        document.getElementById('kirimSaveBtn').onclick = async function() {
+            let savedCount = 0;
+            const res = await fetch('http://localhost:5000/ombor');
+            const all = await res.json();
+            for (let i = 0; i < 20; i++) {
+                const navi = document.getElementById(`kirim-nomi-${i}`).value.trim();
+                const ombordagi_mahsulot = document.getElementById(`kirim-miqdor-${i}`).value;
+                let narxStr = document.getElementById(`kirim-narxi-${i}`).value.replace(',', '.');
+                const kg_narxi = parseFloat(narxStr.replace(/[^\d.-]/g, '')) || 0;
+                if (navi && ombordagi_mahsulot && kg_narxi) {
+                    try {
+                        const existing = all.filter(item => item.navi && item.navi.toLowerCase() === navi.toLowerCase());
+                        if (existing.length > 0) {
+                            // Merge into the last one
+                            const last = existing[existing.length - 1];
+                            const oldMiqdor = parseFloat(last.ombordagi_mahsulot) || 0;
+                            const oldNarxi = parseFloat(last.kg_narxi) || 0;
+                            const newMiqdor = parseFloat(ombordagi_mahsulot) || 0;
+                            const newNarxi = kg_narxi;
+                            const totalMiqdor = oldMiqdor + newMiqdor;
+                            const weightedNarxi = totalMiqdor > 0 ? ((oldMiqdor * oldNarxi) + (newMiqdor * newNarxi)) / totalMiqdor : 0;
+                            await fetch(`http://localhost:5000/ombor/${last._id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ navi, ombordagi_mahsulot: totalMiqdor, kg_narxi: weightedNarxi })
+                            });
+                            // Delete duplicates if any
+                            for (let j = 0; j < existing.length - 1; j++) {
+                                await fetch(`http://localhost:5000/ombor/${existing[j]._id}`, { method: 'DELETE' });
+                            }
+                        } else {
+                            await fetch('http://localhost:5000/ombor', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ navi, ombordagi_mahsulot, kg_narxi })
+                            });
+                        }
+                        savedCount++;
+                    } catch (err) {
+                        alert('Xatolik: Omborga kirim saqlanmadi!');
+                    }
+                }
+            }
+            if (savedCount > 0) {
+                alert(savedCount + ' ta kirim saqlandi!');
+                // closeModal('kirimModal'); // Endi avtomatik yopilmaydi
+                await fetchOmborMahsulotlar();
+            } else {
+                alert('Kiritilgan maʼlumot yoʻq!');
+            }
+        };
+        // Modal ochish va yopish funksiyalari
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+            if (id === 'omborAddModal') renderOmborSelect();
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+            if (deleteMode) {
+                deleteMode = false;
+                renderKlentlarCards();
+                renderYetkazuvchilarCards();
+            }
+        }
+
+        document.querySelectorAll('.modal').forEach(function(modal) {
+            modal.onclick = function(e) {
+                if (e.target === modal) closeModal(modal.id);
+            }
+        });
+
+        let klentlar = [];
+        let deleteMode = false;
+        let usdRate = null;
+        let omborMahsulotlar = [];
+
+        function formatDollar(value) {
+            const num = parseFloat(value);
+            if (isNaN(num)) return '';
+            return num.toLocaleString('en-US') + ' $';
+        }
+
+        function formatSum(value) {
+            const num = parseFloat(value);
+            if (isNaN(num)) return '';
+            return num.toLocaleString('en-US') + ' so‘m';
+        }
+
+        // Valyuta kursini olish
+        async function getRates() {
+            try {
+                const res = await fetch("https://cbu.uz/uz/arkhiv-kursov-valyut/json/");
+                const data = await res.json();
+                const usd = data.find(c => c.Ccy === "USD");
+                usdRate = usd ? parseFloat(usd.Rate) : null;
+            } catch (err) {
+                usdRate = null;
+                console.error("Valyuta kursini olishda xatolik:", err);
+            }
+        }
+
+        // Klentlar ro'yxatini olish
+        async function fetchKlentlar() {
+            try {
+                const res = await fetch('http://localhost:5000/clients');
+                klentlar = await res.json();
+                renderKlentlarCards();
+                renderYetkazuvchilarCards();
+            } catch (err) {
+                klentlar = [];
+                console.error("Klentlarni olishda xatolik:", err);
+            }
+        }
+        // Klent kartalarini ko‘rsatish
+        function renderKlentlarCards() {
+            const klentDiv = document.getElementById('klentlarCards');
+            klentDiv.innerHTML = '';
+            klentlar.filter(klent => klent.type === 'klent').forEach((klent) => {
+                const card = document.createElement('div');
+                card.className = 'klent-card';
+                card.innerHTML = `
+                    ${deleteMode ? `<button class=\"delete-card-btn\" title=\"O‘chirish\" style=\"position:absolute;top:6px;right:6px;font-size:18px;background:#fff;border:1px solid #f44336;color:#f44336;border-radius:50%;width:28px;height:28px;cursor:pointer;z-index:2;\" onclick=\"deleteKlent('${klent._id}', event)\">×</button>` : ''}
+                    <strong>${klent.ism}</strong><br>${klent.telefon}
+                `;
+                card.style.position = 'relative';
+                card.onclick = function(e) {
+                    if (e.target.classList.contains('delete-card-btn')) return;
+                    if (!deleteMode) {
+                        showKlentInfo(klent);
+                    }
+                };
+                klentDiv.appendChild(card);
+            });
+        }
+
+        // Yetkazuvchilar kartalarini ko‘rsatish
+        function renderYetkazuvchilarCards() {
+            const yetkazuvchiDiv = document.getElementById('yetkazuvchilarCards');
+            if (!yetkazuvchiDiv) return; // Agar element mavjud bo'lmasa, qaytish
+            yetkazuvchiDiv.innerHTML = '';
+            klentlar.filter(klent => klent.type === 'yetkazuvchi').forEach((klent) => {
+                const card = document.createElement('div');
+                card.className = 'klent-card';
+                card.innerHTML = `
+                    ${deleteMode ? `<button class=\"delete-card-btn\" title=\"O‘chirish\" style=\"position:absolute;top:6px;right:6px;font-size:18px;background:#fff;border:1px solid #f44336;color:#f44336;border-radius:50%;width:28px;height:28px;cursor:pointer;z-index:2;\" onclick=\"deleteKlent('${klent._id}', event)\">×</button>` : ''}
+                    <strong>${klent.ism}</strong><br>${klent.telefon}
+                `;
+                card.style.position = 'relative';
+                card.onclick = function(e) {
+                    if (e.target.classList.contains('delete-card-btn')) return;
+                    if (!deleteMode) {
+                        showKlentInfo(klent);
+                    }
+                };
+                yetkazuvchiDiv.appendChild(card);
+            });
+        }
+
+        // Klentni o‘chirish
+        async function deleteKlent(id, event) {
+            event.stopPropagation();
+            try {
+                await fetch(`http://localhost:5000/clients/${id}`, { method: 'DELETE' });
+                await fetchKlentlar();
+            } catch (err) {
+                alert("Xatolik: Klent o‘chirilmadi");
+                console.error("Klent o‘chirishda xatolik:", err);
+            }   
+        }
+
+        // Telefon inputlarda faqat raqam kiritish
+        document.getElementById('telefon').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Klent qo‘shish
+        document.getElementById('klentForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const ism = document.getElementById('ism').value;
+            const telefon = document.getElementById('telefon').value;
+            const type = 'klent';
+            try {
+                const response = await fetch('http://localhost:5000/clients', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ism, telefon, type, jami_qarz_dollar: 0, jami_qarz_sum: 0 })
+                });
+                const newKlent = await response.json();
+                closeModal('createKlentModal');
+                document.getElementById('klentForm').reset();
+                await fetchKlentlar();
+                showKlentInfo(newKlent);
+            } catch (err) {
+                alert("Xatolik: Klent qo'shilmadi");
+                console.error("Klent qo‘shishda xatolik:", err);
+            }
+        };
+
+        // Klent ma'lumotlarini ko‘rsatish
+        async function showKlentInfo(klent) {
+            try {
+                await getRates();
+                await fetchMahsulotlar();
+                // API dan qarzlarni olish
+                let qarzSum = 0;
+                let qarzDollar = 0;
+                try {
+                    const clientRes = await fetch(`http://localhost:5000/clients/${klent._id}`);
+                    if (clientRes.ok) {
+                        const clientData = await clientRes.json();
+                        qarzSum = clientData.jami_qarz_sum || 0;
+                        qarzDollar = clientData.jami_qarz_dollar || 0;
+                    }
+                } catch (err) {}
+                window.initialQarzSum = qarzSum;
+                window.initialQarzDollar = qarzDollar;
+                const klentMahsulotlar = mahsulotlar.filter(m => String(m.clientId) === String(klent._id));
+                let rows = [];
+                if (klentMahsulotlar.length > 0) {
+                    rows = klentMahsulotlar.map(item => ({
+                        ...item,
+                        sana: item.sana ? item.sana.split('T')[0] : "", // Faqat sana qismini olish
+                        mahsulot_nomi: item.mahsulot_nomi || "",
+                        kg: item.kg || "",
+                        narx_sum: item.narx_sum || "",
+                        narx_dollar: item.narx_dollar || "",
+                        jami_pul_sum: item.jami_pul_sum || "",
+                        jami_summa_dollar: item.jami_summa_dollar || "",
+                        olingan_pul_sum: item.olingan_pul_sum || "",
+                        olingan_pul_dollar: item.olingan_pul_dollar || "",
+                        kamomad_pul: item.kamomad_pul || "",
+                        ortiqcha_pul: item.ortiqcha_pul || "",
+                        original: { ...item }
+                    }));
+                }
+                let emptyCount = 30 - rows.length;
+                for (let i = 0; i < emptyCount; i++) {
+                    rows.push({
+                        sana: "",
+                        mahsulot_nomi: "",
+                        kg: "",
+                        narx_sum: "",
+                        narx_dollar: "",
+                        jami_pul_sum: "",
+                        jami_summa_dollar: "",
+                        olingan_pul_sum: "",
+                        olingan_pul_dollar: "",
+                        kamomad_pul: "",
+                        ortiqcha_pul: "",
+                        _id: null,
+                        original: {
+                            sana: "",
+                            mahsulot_nomi: "",
+                            kg: "",
+                            narx_sum: "",
+                            narx_dollar: "",
+                            jami_pul_sum: "",
+                            jami_summa_dollar: "",
+                            olingan_pul_sum: "",
+                            olingan_pul_dollar: "",
+                            kamomad_pul: "",
+                            ortiqcha_pul: ""
+                        }
+                    });
+                }
+                function addMoreRowsIfNeeded() {
+                    let lastFilled = -1;
+                    for (let i = rows.length - 1; i >= 0; i--) {
+                        let hasValue = false;
+                        for (let f of ["sana","mahsulot_nomi","kg","narx_sum","narx_dollar","jami_pul_sum","jami_summa_dollar","olingan_pul_sum","olingan_pul_dollar","kamomad_pul","ortiqcha_pul"]) {
+                            let el = document.getElementById(`row-${f}-${i}`);
+                            if (el && el.value && el.value !== "") {
+                                hasValue = true;
+                                break;
+                            }
+                        }
+                        if (hasValue) {
+                            lastFilled = i;
+                            break;
+                        }
+                    }
+                    if (lastFilled >= rows.length - 1 && rows.length % 30 === 0) {
+                        for (let i = 0; i < 30; i++) {
+                            rows.push({
+                                sana: "",
+                                mahsulot_nomi: "",
+                                kg: "",
+                                narx_sum: "",
+                                narx_dollar: "",
+                                jami_pul_sum: "",
+                                jami_summa_dollar: "",
+                                olingan_pul_sum: "",
+                                olingan_pul_dollar: "",
+                                kamomad_pul: "",
+                                ortiqcha_pul: "",
+                                _id: null,
+                                original: {
+                                    sana: "",
+                                    mahsulot_nomi: "",
+                                    kg: "",
+                                    narx_sum: "",
+                                    narx_dollar: "",
+                                    jami_pul_sum: "",
+                                    jami_summa_dollar: "",
+                                    olingan_pul_sum: "",
+                                    olingan_pul_dollar: "",
+                                    kamomad_pul: "",
+                                    ortiqcha_pul: ""
+                                }
+                            });
+                        }
+                    }
+                }
+
+                let omborData = [];
+                try {
+                    const omborRes = await fetch('http://localhost:5000/ombor');
+                    omborData = await omborRes.json();
+                } catch (err) {
+                    omborData = [];
+                    alert("Ombor ma'lumotlarini olishda xatolik");
+                    console.error("Ombor ma'lumotlarini olishda xatolik:", err);
+                }
+                const omborNomiList = omborData.map(item => ({
+                    navi: item.navi || '',
+                    qoldiq: item.ombordagi_mahsulot || 0,
+                    _id: item._id,
+                    kg_narxi: item.kg_narxi || 0
+                }));
+
+                let tableRows = rows.map((row, i) => `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td><input type="date" value="${row.sana ? row.sana.substring(0,10) : ''}" class="excel-input" id="row-sana-${i}"/></td>
+                        <td>
+                            <select class="excel-input" id="row-mahsulot_nomi-${i}">
+                                <option value="" ${!row.mahsulot_nomi ? 'selected' : ''}></option>
+                                <option value="Yolkira" ${row.mahsulot_nomi === 'Yolkira' ? 'selected' : ''}>Yolkira</option>
+                                ${omborNomiList.filter(item => item.qoldiq > 0 || item.navi === row.mahsulot_nomi).map(item => `
+                                    <option value="${item.navi}" ${row.mahsulot_nomi === item.navi ? 'selected' : ''}>
+                                        ${item.navi}${item.qoldiq > 0 ? ` (${item.qoldiq} kg)` : ''}
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </td>
+                        <td><input type="number" value="${row.kg || ''}" class="excel-input" id="row-kg-${i}"/></td>
+                        <td><input type="text" value="${row.narx_sum || ''}" class="excel-input" id="row-narx_sum-${i}"/></td>
+                        <td><input type="text" value="${row.narx_dollar || ''}" class="excel-input" id="row-narx_dollar-${i}"/></td>
+                        <td><input type="text" value="${row.jami_pul_sum || ''}" class="excel-input" id="row-jami_pul_sum-${i}"/></td>
+                        <td><input type="text" value="${row.jami_summa_dollar || ''}" class="excel-input" id="row-jami_summa_dollar-${i}"/></td>
+                        <td><input type="text" value="${row.olingan_pul_sum || ''}" class="excel-input" id="row-olingan_pul_sum-${i}"/></td>
+                        <td><input type="text" value="${row.olingan_pul_dollar || ''}" class="excel-input" id="row-olingan_pul_dollar-${i}"/></td>
+                        <td><input type="text" value="${row.kamomad_pul || ''}" class="excel-input" id="row-kamomad_pul-${i}" autocomplete="off" inputmode="decimal" pattern="[0-9.,-]*"></td>
+                        <td><input type="text" value="${row.ortiqcha_pul || ''}" class="excel-input" id="row-ortiqcha_pul-${i}"/></td>
+                    </tr>
+                `).join('');
+
+                let kursHtml = usdRate ? `
+                    <div style="background:#fffbe6;padding:8px 0 8px 16px;font-size:1.1em;font-weight:bold;border-bottom:2px solid #e0e0e0;">
+                        1$ = ${Math.round(usdRate).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")} so‘m &nbsp;  &nbsp;
+                    </div>
+                    <div id="custom-jami-qarz" style="display:flex;justify-content:center;align-items:center;margin:0 0 10px 0;">
+                        <div style="background:#fff9c4;color:#222;font-weight:bold;padding:2px 18px 2px 10px;font-size:1.5em;border-radius:3px 0 0 3px;min-width:120px;text-align:right;"> <span id="yolkiraQarzSum">-</span> </div>
+                        <div style="background:#ffe0b2;color:#222;font-weight:bold;padding:2px 18px 2px 10px;font-size:1.5em;border-radius:0 3px 3px 0;min-width:120px;text-align:right;"> <span id="boshqaQarzDollar">$0</span> </div>
+                    </div>
+                ` : `
+                    <div style="background:#fffbe6;padding:8px 0 8px 16px;font-size:1.1em;font-weight:bold;border-bottom:2px solid #e0e0e0;">
+                        1$ = ... so‘m
+                    </div>
+                `;
+
+                let updateButton = `<button id="updateBtn" class="yangilash_btn" style="margin-top:10px; float:right;">Saqlash</button>`;
+
+                let jamiQarzSum = 0;
+                let jamiQarzDollar = 0;
+                let olinganQarzSum = 0;
+                rows.forEach((row) => {
+                    const jamiSum = parseFloat(row.jami_pul_sum) || 0;
+                    const olinganSum = parseFloat(row.olingan_pul_sum) || 0;
+                    const jamiDollar = parseFloat(row.jami_summa_dollar) || 0;
+                    const olinganDollar = parseFloat(row.olingan_pul_dollar) || 0;
+                    const kamomad = parseFloat(row.kamomad_pul) || 0;
+
+                    if (row.mahsulot_nomi && row.mahsulot_nomi.toLowerCase() === 'oln qarz') {
+                        olinganQarzSum += olinganSum;
+                    } else if (!row.mahsulot_nomi || row.mahsulot_nomi === '') {
+                        jamiQarzSum -= olinganSum;
+                        jamiQarzSum -= kamomad;
+                    } else if (row.mahsulot_nomi.toLowerCase() === 'yolkira') {
+                        jamiQarzSum += jamiSum;
+                        jamiQarzDollar += jamiDollar;
+                        jamiQarzDollar -= olinganDollar;
+                    } else {
+                        jamiQarzSum += jamiSum - olinganSum;
+                        jamiQarzSum += kamomad;
+                        jamiQarzDollar += (jamiDollar - olinganDollar);
+                    }
+                });
+                jamiQarzSum -= olinganQarzSum;
+                // Syntax fix: remove duplicate and misplaced code
+
+                document.getElementById('klentInfoExcel').innerHTML = `
+                    ${kursHtml.replace('<span id="yolkiraQarzSum">-</span>', `<span id="yolkiraQarzSum">${(window.initialQarzSum + jamiQarzSum).toLocaleString('ru-RU')} so‘m</span>`).replace('<span id="boshqaQarzDollar">$0</span>', `<span id="boshqaQarzDollar">$${(window.initialQarzDollar + jamiQarzDollar).toLocaleString('en-US')}</span>`)}
+                    <div class="excel-klent-row">
+                        <span><b>${klent.ism}</b> ${klent.telefon ? klent.telefon : ''}</span>
+                    </div>
+                    <table class="excel-table">
+                        <thead>
+                            <tr>
+                                <th>№</th>
+                                <th>Sana</th>
+                                <th>Mahsulot nomi</th>
+                                <th>KG</th>
+                                <th>Narx, so‘m</th>
+                                <th>Narx, $</th>
+                                <th>Jami pul, so‘m</th>
+                                <th>Jami summa, $</th>
+                                <th>Olingan pul, so‘m</th>
+                                <th>Olingan pul, $</th>
+                                <th>Kamomad pul</th>
+                                <th>Ortiqcha pul</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                    <div style="width:100%;display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin-top:-30px;">
+                        ${updateButton}
+                    </div>
+                `;
+                openModal('klentInfoModal');
+
+                // Hisobni yangilash tugmasi va event handleri olib tashlandi
+
+                // Format inputs after rendering
+                rows.forEach((row, i) => {
+                    ["narx_dollar", "jami_summa_dollar", "olingan_pul_dollar", "ortiqcha_pul"].forEach(field => {
+                        const input = document.getElementById(`row-${field}-${i}`);
+                        if (input && input.value) {
+                            input.value = formatDollar(input.value.replace(/,/g, ''));
+                        }
+                    });
+                    ["narx_sum", "jami_pul_sum", "olingan_pul_sum", "kamomad_pul"].forEach(field => {
+                        const input = document.getElementById(`row-${field}-${i}`);
+                        if (input && input.value) {
+                            input.value = formatSum(input.value.replace(/,/g, ''));
+                        }
+                        // Olingan pul so‘m inputi o'zgarganda jami qarz hisoblash
+                        if (field === "olingan_pul_sum" && input) {
+                            input.addEventListener('input', function() {
+                                updateJamiQarz();
+                            });
+                        }
+                    });
+                });
+
+                const fields = [
+                    "sana", "mahsulot_nomi", "kg", "narx_sum", "narx_dollar", "jami_pul_sum", "jami_summa_dollar",
+                    "olingan_pul_sum", "olingan_pul_dollar", "kamomad_pul", "ortiqcha_pul"
+                ];
+
+                rows.forEach((row, i) => {
+                    fields.forEach(field => {
+                        const input = document.getElementById(`row-${field}-${i}`);
+                        if (input) {
+                            input.oninput = function() {
+                                const originalVal = row.original[field] ? (field === "sana" ? row.original[field].substring(0, 10) : row.original[field].toString()) : "";
+                                const newVal = input.value.replace(/ so‘m|\$/g, '').replace(/\s/g, '').replace(/,/g, '');
+                                input.style.background = newVal !== originalVal ? "#b7d0ee" : "#fff";
+                                hisobla(i); // Kamomadni har inputda hisoblash
+                                updateJamiQarz();
+                                if (i === rows.length - 1 && rows.length % 30 === 0) {
+                                    addMoreRowsIfNeeded();
+                                }
+                            };
+                            if (!input.value) input.value = "";
+                            if (["narx_sum", "narx_dollar", "jami_pul_sum", "jami_summa_dollar", "olingan_pul_sum", "olingan_pul_dollar", "kamomad_pul", "ortiqcha_pul"].includes(field)) {
+                                input.addEventListener('blur', function() {
+                                    let val = input.value.replace(/[^\d.\-]/g, '');
+                                    if (val && !isNaN(val)) {
+                                        if (field.includes('dollar')) {
+                                            input.value = formatDollar(val);
+                                        } else if (field.includes('sum') && !field.includes('dollar')) {
+                                            input.value = formatSum(val);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
+                });
+
+                function hisobla(i) {
+                    const jamiInputSum = document.getElementById(`row-jami_pul_sum-${i}`);
+                    const olinganInputSum = document.getElementById(`row-olingan_pul_sum-${i}`);
+                    const kamomadInput = document.getElementById(`row-kamomad_pul-${i}`);
+                    const ortiqchaInput = document.getElementById(`row-ortiqcha_pul-${i}`);
+
+                    let jamiSum = jamiInputSum?.value ? parseFloat(jamiInputSum.value.replace(/[^\d.\-]/g, '')) : 0;
+                    let olinganSum = olinganInputSum?.value ? parseFloat(olinganInputSum.value.replace(/[^\d.\-]/g, '')) : 0;
+                    let kamomad = kamomadInput?.value ? parseFloat(kamomadInput.value.replace(/[^\d.\-]/g, '')) : 0;
+                    let ortiqcha = ortiqchaInput?.value ? parseFloat(ortiqchaInput.value.replace(/[^\d.\-]/g, '')) : 0;
+
+                    if (isNaN(jamiSum)) jamiSum = 0;
+                    if (isNaN(olinganSum)) olinganSum = 0;
+                    if (isNaN(kamomad)) kamomad = 0;
+                    if (isNaN(ortiqcha)) ortiqcha = 0;
+
+                    // Do not auto-calculate kamomad or ortiqcha, keep their input values
+                    kamomadInput.value = kamomad ? formatSum(kamomad) : '';
+                    ortiqchaInput.value = ortiqcha ? formatSum(ortiqcha) : '';
+                }
+
+                function updateJami(i) {
+                    const kgInput = document.getElementById(`row-kg-${i}`);
+                    const narxDolInput = document.getElementById(`row-narx_dollar-${i}`);
+                    const jamiDolInput = document.getElementById(`row-jami_summa_dollar-${i}`);
+                    const jamiSumInput = document.getElementById(`row-jami_pul_sum-${i}`);
+
+                    const kg = parseFloat(kgInput?.value) || 0;
+                    const narxDol = parseFloat(narxDolInput?.value.replace(/[^\d.\-]/g, '')) || 0;
+                    const jamiDol = kg * narxDol;
+
+                    jamiDolInput.value = formatDollar(jamiDol);
+
+                    hisobla(i);
+                    updateJamiQarz();
+                }
+
+                rows.forEach((row, i) => {
+                    const originalMahsulot = row.original.mahsulot_nomi || '';
+                    const originalKg = parseFloat(row.original.kg) || 0;
+                    const kgInput = document.getElementById(`row-kg-${i}`);
+                    const narxDolInput = document.getElementById(`row-narx_dollar-${i}`);
+                    const narxSumInput = document.getElementById(`row-narx_sum-${i}`);
+                    const jamiDolInput = document.getElementById(`row-jami_summa_dollar-${i}`);
+                    const jamiSumInput = document.getElementById(`row-jami_pul_sum-${i}`);
+                    const olinganDolInput = document.getElementById(`row-olingan_pul_dollar-${i}`);
+                    const olinganSumInput = document.getElementById(`row-olingan_pul_sum-${i}`);
+                    const kamomadInput = document.getElementById(`row-kamomad_pul-${i}`);
+                    const ortiqchaInput = document.getElementById(`row-ortiqcha_pul-${i}`);
+                    const mahsulotSelect = document.getElementById(`row-mahsulot_nomi-${i}`);
+
+                    if (mahsulotSelect) {
+                        mahsulotSelect.onchange = () => {
+                            const selectedNavi = mahsulotSelect.value;
+                            const selectedOmbor = omborNomiList.find(item => item.navi === selectedNavi);
+                            if (selectedOmbor) {
+                                const narxDol = selectedOmbor.kg_narxi || 0;
+                                narxDolInput.value = formatDollar(narxDol);
+                                updateJami(i);
+                            } else {
+                                narxDolInput.value = '';
+                                narxSumInput.value = '';
+                                updateJami(i);
+                            }
+                        };
+                    }
+
+                    if (kgInput) kgInput.oninput = () => updateJami(i);
+
+                    if (jamiDolInput) {
+                        jamiDolInput.oninput = () => {
+                            hisobla(i);
+                            updateJamiQarz();
+                        };
+                    }
+                    if (jamiSumInput) {
+                        jamiSumInput.oninput = () => {
+                            hisobla(i);
+                            updateJamiQarz();
+                        };
+                    }
+                    if (olinganDolInput) {
+                        olinganDolInput.oninput = () => {
+                            hisobla(i);
+                            updateJamiQarz();
+                        };
+                    }
+                    if (olinganSumInput) {
+                        olinganSumInput.oninput = () => {
+                            hisobla(i);
+                            updateJamiQarz();
+                        };
+                    }
+                    // Removed kamomadInput.oninput to prevent it from affecting calculations
+                    if (ortiqchaInput) {
+                        ortiqchaInput.oninput = () => {
+                            hisobla(i);
+                            updateJamiQarz();
+                        };
+                    }
+
+                    const omborQoldiqMap = {};
+                    omborData.forEach(item => {
+                        omborQoldiqMap[item.navi] = Number(item.ombordagi_mahsulot) || 0;
+                    });
+
+                    if (mahsulotSelect && kgInput) {
+                        function updateOmborQoldiq() {
+                            const tanlanganMahsulot = mahsulotSelect.value;
+                            const kiritilganKg = Number(kgInput.value) || 0;
+                            if (!tanlanganMahsulot || kiritilganKg <= 0) return;
+                            const ombordagi = omborQoldiqMap[tanlanganMahsulot] || 0;
+                            let available = ombordagi;
+                            if (tanlanganMahsulot === originalMahsulot) {
+                                available += originalKg;
+                            }
+                            if (kiritilganKg > available) {
+                                alert(`Omborda faqat ${available} kg "${tanlanganMahsulot}" mavjud!`);
+                                kgInput.value = '';
+                            }
+                        }
+                        mahsulotSelect.addEventListener('change', updateOmborQoldiq);
+                        kgInput.addEventListener('input', updateOmborQoldiq);
+                    }
+                    if (row.mahsulot_nomi) {
+                        mahsulotSelect.dispatchEvent(new Event('change'));
+                    }
+                });
+
+                for (let i = 0; i < rows.length; i++) {
+                    hisobla(i);
+                }
+
+                function updateJamiQarz() {
+    let somQarz = 0;
+    let dollarQarz = 0;
+
+    document.querySelectorAll('tr').forEach((tr, i) => {
+        if (i === 0) return; // Skip thead
+        const mahsulotSelect = document.getElementById(`row-mahsulot_nomi-${i-1}`);
+        const mahsulot = mahsulotSelect ? mahsulotSelect.value.toLowerCase() : '';
+        const jamiSumInput = document.getElementById(`row-jami_pul_sum-${i-1}`);
+        const olinganSumInput = document.getElementById(`row-olingan_pul_sum-${i-1}`);
+        const jamiDollarInput = document.getElementById(`row-jami_summa_dollar-${i-1}`);
+        const olinganDollarInput = document.getElementById(`row-olingan_pul_dollar-${i-1}`);
+        const kamomadInput = document.getElementById(`row-kamomad_pul-${i-1}`);
+        const ortiqchaInput = document.getElementById(`row-ortiqcha_pul-${i-1}`);
+
+        let jamiSum = jamiSumInput?.value ? parseFloat(jamiSumInput.value.replace(/[^\d.\-]/g, '')) : 0;
+        let olinganSum = olinganSumInput?.value ? parseFloat(olinganSumInput.value.replace(/[^\d.\-]/g, '')) : 0;
+        let jamiDollar = jamiDollarInput?.value ? parseFloat(jamiDollarInput.value.replace(/[^\d.\-]/g, '')) : 0;
+        let olinganDollar = olinganDollarInput?.value ? parseFloat(olinganDollarInput.value.replace(/[^\d.\-]/g, '')) : 0;
+        let kamomad = kamomadInput?.value ? parseFloat(kamomadInput.value.replace(/[^\d.\-]/g, '')) : 0;
+        let ortiqcha = ortiqchaInput?.value ? parseFloat(ortiqchaInput.value.replace(/[^\d.\-]/g, '')) : 0;
+
+        if (isNaN(jamiSum)) jamiSum = 0;
+        if (isNaN(olinganSum)) olinganSum = 0;
+        if (isNaN(jamiDollar)) jamiDollar = 0;
+        if (isNaN(olinganDollar)) olinganDollar = 0;
+        if (isNaN(kamomad)) kamomad = 0;
+        if (isNaN(ortiqcha)) ortiqcha = 0;
+
+        if (mahsulot.includes('yolkira')) {
+            somQarz += (jamiSum + kamomad - olinganSum - ortiqcha);
+        } else {
+            dollarQarz += (jamiDollar - olinganDollar);
+            somQarz += (jamiSum + kamomad - olinganSum - ortiqcha);
+        }
+    });
+
+    somQarz += window.initialQarzSum || 0;
+    dollarQarz += window.initialQarzDollar || 0;
+
+    const yolkiraQarzSumEl = document.getElementById('yolkiraQarzSum');
+    if (yolkiraQarzSumEl) {
+        yolkiraQarzSumEl.textContent = somQarz.toLocaleString('ru-RU') + ' so‘m';
+    }
+    const boshqaQarzDollarEl = document.getElementById('boshqaQarzDollar');
+    if (boshqaQarzDollarEl) {
+        boshqaQarzDollarEl.textContent = '$' + dollarQarz.toLocaleString('en-US');
+    }
+}
+
+                document.getElementById('updateBtn').onclick = async function() {
+                    let updatedCount = 0;
+                    let createdCount = 0;
+                    let omborUpdates = new Map();
+                    // Eski qarzlarni olish (summarydan yoki backenddan)
+                    let oldQarzSum = 0;
+                    let oldQarzDollar = 0;
+                    try {
+                        const clientRes = await fetch(`http://localhost:5000/clients/${klent._id}`);
+                        if (clientRes.ok) {
+                            const clientData = await clientRes.json();
+                            oldQarzSum = clientData.jami_qarz_sum || 0;
+                            oldQarzDollar = clientData.jami_qarz_dollar || 0;
+                        }
+                    } catch (err) {}
+                    let qarzSum = 0;
+                    let qarzDollar = 0;
+                    for (let i = 0; i < rows.length; i++) {
+                        let rowData = {};
+                        const original = rows[i].original;
+                        const id = rows[i]._id;
+                        let isEmpty = true;
+                        fields.forEach(field => {
+                            const input = document.getElementById(`row-${field}-${i}`);
+                            let newVal = input ? input.value.replace(/ so‘m|\$/g, '').replace(/\s/g, '') : "";
+                            if (["kg", "narx_sum", "narx_dollar", "jami_pul_sum", "jami_summa_dollar", "olingan_pul_sum", "olingan_pul_dollar", "kamomad_pul", "ortiqcha_pul"].includes(field)) {
+                                newVal = newVal.replace(/,/g, '');
+                            }
+                            rowData[field] = field === "sana" && newVal ? new Date(newVal).toISOString() : newVal;
+                            if (newVal) isEmpty = false;
+                        });
+                        // Faqat to'liq qatorlar (kamida mahsulot_nomi yoki yolkira, va kg yoki jami_pul_sum yoki jami_summa_dollar bo'lsa) saqlanadi
+                        const mahsulotNomi = rowData.mahsulot_nomi;
+                        const kgVal = rowData.kg;
+                        const jamiSumVal = rowData.jami_pul_sum;
+                        const jamiDollarVal = rowData.jami_summa_dollar;
+                        if (isEmpty) continue;
+                        const originalMahsulot = original.mahsulot_nomi || '';
+                        const originalKg = parseFloat(original.kg) || 0;
+                        const newMahsulot = rowData.mahsulot_nomi || originalMahsulot;
+                        const newKg = parseFloat(rowData.kg) || originalKg;
+                        // Qarz hisoblash (yolkira ham hisoblanadi)
+                        if (
+                            newKg > 0 &&
+                            newMahsulot &&
+                            (jamiSumVal || jamiDollarVal)
+                        ) {
+                            const jamiSum = parseFloat(rowData.jami_pul_sum) || 0;
+                            const olinganSum = parseFloat(rowData.olingan_pul_sum) || 0;
+                            const jamiDollar = parseFloat(rowData.jami_summa_dollar) || 0;
+                            const olinganDollar = parseFloat(rowData.olingan_pul_dollar) || 0;
+                            if (newMahsulot.toLowerCase() === 'yolkira') {
+                                qarzSum += (jamiSum - olinganSum);
+                            } else {
+                                qarzSum += (jamiSum - olinganSum);
+                                qarzDollar += (jamiDollar - olinganDollar);
+                            }
+                        }
+                        // Ombor faqat mahsulot uchun (yolkira emas)
+                        if (newKg > 0 && newMahsulot && newMahsulot.toLowerCase() !== 'yolkira') {
+                            if (originalMahsulot && originalKg > 0 && originalMahsulot !== newMahsulot) {
+                                const oldOmbor = omborData.find(item => item.navi === originalMahsulot);
+                                if (oldOmbor) {
+                                    const oldNewQoldiq = (Number(oldOmbor.ombordagi_mahsulot) || 0) + originalKg;
+                                    omborUpdates.set(oldOmbor._id, {
+                                        navi: oldOmbor.navi,
+                                        ombordagi_mahsulot: oldNewQoldiq,
+                                        kg_narxi: oldOmbor.kg_narxi
+                                    });
+                                }
+                                const newOmbor = omborData.find(item => item.navi === newMahsulot);
+                                if (newOmbor) {
+                                    const newQoldiq = (Number(newOmbor.ombordagi_mahsulot) || 0) - newKg;
+                                    if (newQoldiq < 0) {
+                                        alert(`Xatolik: Omborda "${newMahsulot}" uchun ${newOmbor.ombordagi_mahsulot} kg mavjud, lekin ${newKg} kg kiritildi!`);
+                                        return;
+                                    }
+                                    omborUpdates.set(newOmbor._id, {
+                                        navi: newOmbor.navi,
+                                        ombordagi_mahsulot: newQoldiq,
+                                        kg_narxi: newOmbor.kg_narxi
+                                    });
+                                } else {
+                                    alert(`Xatolik: "${newMahsulot}" omborda topilmadi!`);
+                                    return;
+                                }
+                            } else {
+                                const kgDifference = newKg - originalKg;
+                                if (kgDifference !== 0) {
+                                    const omborItem = omborData.find(item => item.navi === newMahsulot);
+                                    if (omborItem) {
+                                        const yangiQoldiq = (Number(omborItem.ombordagi_mahsulot) || 0) - kgDifference;
+                                        if (yangiQoldiq < 0) {
+                                            alert(`Xatolik: Omborda "${newMahsulot}" uchun ${omborItem.ombordagi_mahsulot} kg mavjud, lekin ${newKg} kg kiritildi!`);
+                                            return;
+                                        }
+                                        omborUpdates.set(omborItem._id, {
+                                            navi: omborItem.navi,
+                                            ombordagi_mahsulot: yangiQoldiq,
+                                            kg_narxi: omborItem.kg_narxi
+                                        });
+                                    } else {
+                                        alert(`Xatolik: "${newMahsulot}" omborda topilmadi!`);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        // Har doim saqlash (yolkira ham, mahsulot ham)
+                        if (id) {
+                            await fetch(`http://localhost:5000/users/${id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(rowData)
+                            });
+                            updatedCount++;
+                        } else {
+                            rowData.clientId = klent._id;
+                            await fetch('http://localhost:5000/users', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(rowData)
+                            });
+                            createdCount++;
+                        }
+                    }
+                    // Qarz summary ni API ga saqlash
+                    // Faqat haqiqiy mahsulot (kg > 0 va narx/jami_pul_sum bor) bo'lsa qarz yangilanadi
+                    let hasRealProduct = false;
+                    for (let i = 0; i < rows.length; i++) {
+                        const rowData = {};
+                        fields.forEach(field => {
+                            const input = document.getElementById(`row-${field}-${i}`);
+                            let newVal = input ? input.value.replace(/ so‘m|\$/g, '').replace(/\s/g, '') : "";
+                            if (["kg", "narx_sum", "narx_dollar", "jami_pul_sum", "jami_summa_dollar", "olingan_pul_sum", "olingan_pul_dollar", "kamomad_pul", "ortiqcha_pul"].includes(field)) {
+                                newVal = newVal.replace(/,/g, '');
+                            }
+                            rowData[field] = field === "sana" && newVal ? new Date(newVal).toISOString() : newVal;
+                        });
+                        const newKg = parseFloat(rowData.kg) || 0;
+                        const jamiSumVal = rowData.jami_pul_sum;
+                        const jamiDollarVal = rowData.jami_summa_dollar;
+                        if (
+                            newKg > 0 &&
+                            (jamiSumVal || jamiDollarVal)
+                        ) {
+                            hasRealProduct = true;
+                            break;
+                        }
+                    }
+                    if (hasRealProduct && (qarzSum !== 0 || qarzDollar !== 0)) {
+                        await fetch(`http://localhost:5000/clients/${klent._id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ jami_qarz_sum: oldQarzSum + qarzSum, jami_qarz_dollar: oldQarzDollar + qarzDollar })
+                        });
+                    }
+                    if (updatedCount > 0 || createdCount > 0 || omborUpdates.size > 0) {
+                        let omborYangilandi = 0;
+                        for (const [omborId, omborObj] of omborUpdates.entries()) {
+                            await fetch(`http://localhost:5000/ombor/${omborId}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(omborObj)
+                            });
+                            omborYangilandi++;
+                        }
+                        var saveStatus = document.getElementById('saveStatus');
+                        if (saveStatus) {
+                            saveStatus.style.display = 'block';
+                            setTimeout(function() {
+                                saveStatus.style.display = 'none';
+                            }, 2000);
+                        }
+                        await fetchKlentlar();
+                        // Fetch the latest mahsulotlar from backend and update UI
+                        const usersRes = await fetch('http://localhost:5000/users');
+                        if (usersRes.ok) {
+                            mahsulotlar = await usersRes.json();
+                        }
+                        showKlentInfo(klent);
+                    } else {
+                        var saveStatus = document.getElementById('saveStatus');
+                        if (saveStatus) {
+                            saveStatus.style.display = 'block';
+                            setTimeout(function() {
+                                saveStatus.style.display = 'none';
+                            }, 2000);
+                        }
+                    }
+                };
+            } catch (err) {
+                alert("Klent ma'lumotlarini ko‘rsatishda xatolik");
+                console.error("Klent ma'lumotlarini ko‘rsatishda xatolik:", err);
+            }
+        }
+
+        let mahsulotlar = [];
+
+        // Mahsulotlarni olish
+        async function fetchMahsulotlar() {
+            try {
+                const res = await fetch('http://localhost:5000/users');
+                mahsulotlar = await res.json();
+            } catch (err) {
+                mahsulotlar = [];
+                alert("Mahsulotlarni olishda xatolik");
+                console.error("Mahsulotlarni olishda xatolik:", err);
+            }
+        }
+
+        // Ombor mahsulotlarini olish
+        async function fetchOmborMahsulotlar() {
+            try {
+                await getRates();
+                const res = await fetch('http://localhost:5000/ombor');
+                let data = await res.json();
+                // Group by navi to ensure unique
+                let grouped = {};
+                data.forEach(item => {
+                    if (item.navi) {
+                        const key = item.navi.toLowerCase();
+                        if (!grouped[key]) {
+                            grouped[key] = { navi: item.navi, ombordagi_mahsulot: 0, kg_narxi: 0, _id: item._id, count: 0, totalPrice: 0 };
+                        }
+                        const miqdor = parseFloat(item.ombordagi_mahsulot) || 0;
+                        const narxi = parseFloat(item.kg_narxi) || 0;
+                        grouped[key].ombordagi_mahsulot += miqdor;
+                        grouped[key].totalPrice += miqdor * narxi;
+                        grouped[key].count += 1;
+                        // Keep the last _id
+                        grouped[key]._id = item._id;
+                    }
+                });
+                // Calculate weighted average
+                for (let key in grouped) {
+                    if (grouped[key].ombordagi_mahsulot > 0) {
+                        grouped[key].kg_narxi = grouped[key].totalPrice / grouped[key].ombordagi_mahsulot;
+                    } else {
+                        grouped[key].kg_narxi = 0;
+                    }
+                    delete grouped[key].totalPrice;
+                    delete grouped[key].count;
+                }
+                omborMahsulotlar = Object.values(grouped);
+                renderOmborTable();
+            } catch (err) {
+                omborMahsulotlar = [];
+                alert("Ombor mahsulotlarini olishda xatolik");
+                console.error("Ombor mahsulotlarini olishda xatolik:", err);
+            }
+        }
+
+        // Ombor jadvalini ko‘rsatish
+        function renderOmborTable() {
+            const tbody = document.querySelector("#omborTable tbody");
+            tbody.innerHTML = "";
+            // Kirim modalidan mahsulotlarni olish
+            let kirimMahsulotlar = [];
+            for (let i = 0; i < 20; i++) {
+                const nomiInput = document.getElementById(`kirim-nomi-${i}`);
+                if (nomiInput && nomiInput.value.trim()) {
+                    kirimMahsulotlar.push(nomiInput.value.trim());
+                }
+            }
+            // LocalStorage dan saqlangan mahsulotlarni ham tekshirish
+            let storedData = localStorage.getItem('kirimModalData');
+            if (storedData) {
+                storedData = JSON.parse(storedData);
+                for (let key in storedData) {
+                    if (key.startsWith('kirim-nomi-') && storedData[key].trim()) {
+                        kirimMahsulotlar.push(storedData[key].trim());
+                    }
+                }
+            }
+            // Unikal mahsulotlarni saqlash
+            kirimMahsulotlar = [...new Set(kirimMahsulotlar)];
+
+            for (let i = 0; i < 20; i++) {
+                let item = (Array.isArray(omborMahsulotlar) && omborMahsulotlar[i]) ? omborMahsulotlar[i] : { navi: "", ombordagi_mahsulot: "", kg_narxi: "", _id: null };
+                const totalValueDollar = (parseFloat(item.ombordagi_mahsulot) || 0) * (parseFloat(item.kg_narxi) || 0);
+                const totalValueSum = usdRate ? Math.round(totalValueDollar * usdRate) : 0;
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${i + 1}</td>
+                    <td>
+                        <select class="excel-input" id="ombor-navi-${i}">
+                            <option value=""></option>
+                            ${kirimMahsulotlar.map(nomi => `<option value="${nomi}" ${item.navi === nomi ? 'selected' : ''}>${nomi}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td><input type="number" value="${item.ombordagi_mahsulot || ''}" class="excel-input" id="ombor-miqdor-${i}"></td>
+                    <td><input type="text" value="${item.kg_narxi ? formatDollar(item.kg_narxi) : ''}" class="excel-input" id="ombor-narxi-dollar-${i}"></td>
+                    <td><input type="text" value="${totalValueDollar ? formatSum(totalValueSum) : ''}" class="excel-input" id="ombor-narxi-sum-${i}" readonly></td>
+                `;
+                tbody.appendChild(tr);
+            }
+            updateTotals();
+        }
+
+        function updateTotals() {
+            let totalKg = 0;
+            let totalValueDollar = 0;
+            for (let i = 0; i < 20; i++) {
+                const miqdor = parseFloat(document.getElementById(`ombor-miqdor-${i}`)?.value) || 0;
+                const narxiDol = parseFloat(document.getElementById(`ombor-narxi-dollar-${i}`)?.value.replace(/[^\d.\-]/g, '')) || 0;
+                totalKg += miqdor;
+                totalValueDollar += miqdor * narxiDol;
+            }
+            document.getElementById('total-kg').innerText = totalKg;
+            const roundedDollar = totalValueDollar.toLocaleString('en-US');
+            const roundedSum = usdRate ? (totalValueDollar * usdRate).toLocaleString('en-US') : 0;
+            document.getElementById('total-value').innerText = roundedDollar + ' $ / ' + roundedSum + ' so‘m';
+        }
+        // Ombor yangilash
+        document.getElementById('omborUpdateBtn').onclick = async function() {
+            let updatedCount = 0;
+            let createdCount = 0;
+            for (let i = 0; i < 20; i++) {
+                const item = omborMahsulotlar[i] || { navi: "", ombordagi_mahsulot: "", kg_narxi: 0, _id: null };
+                const naviInput = document.getElementById(`ombor-navi-${i}`);
+                const miqdorInput = document.getElementById(`ombor-miqdor-${i}`);
+                const narxiDollarInput = document.getElementById(`ombor-narxi-dollar-${i}`);
+                const newNavi = naviInput.value;
+                const newMiqdor = miqdorInput.value;
+                const narxStr = narxiDollarInput.value;
+                let newNarxi = 0;
+                if (narxStr.includes(',')) {
+                    newNarxi = parseFloat(narxStr.replace(',', '.').replace(/[^\d.-]/g, '')) || 0;
+                } else {
+                    newNarxi = parseFloat(narxStr.replace(/[^\d.-]/g, '')) || 0;
+                }
+                const hasChanges = newNavi !== (item.navi || "") || newMiqdor !== (item.ombordagi_mahsulot?.toString() || "") || newNarxi !== (item.kg_narxi || 0);
+                try {
+                    if (hasChanges && item._id) {
+                        await fetch(`http://localhost:5000/ombor/${item._id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ navi: newNavi, ombordagi_mahsulot: newMiqdor, kg_narxi: newNarxi })
+                        });
+                        updatedCount++;
+                    } else if (hasChanges && !item._id && (newNavi || newMiqdor || newNarxi)) {
+                        await fetch('http://localhost:5000/ombor', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ navi: newNavi, ombordagi_mahsulot: newMiqdor, kg_narxi: newNarxi })
+                        });
+                        createdCount++;
+                    }
+                } catch (err) {
+                    alert("Ombor ma'lumotlarini yangilashda xatolik");
+                    console.error("Ombor ma'lumotlarini yangilashda xatolik:", err);
+                }
+            }
+            if (updatedCount > 0 || createdCount > 0) {
+                alert(`${updatedCount} ta yangilandi, ${createdCount} ta qo'shildi!`);
+                await fetchOmborMahsulotlar();
+            } else {
+                alert('Oʻzgartirilgan maʼlumot yoʻq yoki ID topilmadi!');
+            }
+        };
+        // Omborga mahsulot qo'shish
+        document.getElementById('omborForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const navi = document.getElementById('omborNavi').value;
+            const ombordagi_mahsulot = document.getElementById('omborMiqdor').value;
+            let narxStr = document.getElementById('omborNarxi').value.replace(',', '.');
+            const kg_narxi = parseFloat(narxStr.replace(/[^\d.-]/g, '')) || 0;
+            try {
+                await fetch('http://localhost:5000/ombor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ navi, ombordagi_mahsulot, kg_narxi })
+                });
+                closeModal('omborAddModal');
+                document.getElementById('omborForm').reset();
+                await fetchOmborMahsulotlar();
+            } catch (err) {
+                alert("Omborga mahsulot qo‘shishda xatolik");
+                console.error("Omborga mahsulot qo‘shishda xatolik:", err);
+            }
+        };
+
+        // Side modal funksiyalari
+        document.getElementById('klentMenuIcon').onclick = function() {
+            openSideModal('sideModal');
+        };
+        function openSideModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+
+        function closeSideModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        document.getElementById('klentlarBtn').onclick = function() {
+            openModal('klentlarModal');
+            deleteMode = false;
+            fetchKlentlar();
+        };
+
+        document.getElementById('sideCreateBtn').onclick = function() {
+            openModal('createKlentModal');
+            closeSideModal('sideModal');
+        };
+
+        document.getElementById('sideDeleteBtn').onclick = function() {
+            deleteMode = true;
+            fetchKlentlar();
+            closeSideModal('sideModal');
+        };
+
+        document.getElementById('omborBtn').onclick = function() {
+            openModal('omborModal');
+            fetchOmborMahsulotlar();
+        };
+
+        async function renderOmborSelect() {
+            try {
+                const res = await fetch('http://localhost:5000/ombor');
+                const mahsulotlar = await res.json();
+                const select = document.getElementById('mahsulotNomi');
+                if (!select) return;
+                select.innerHTML = '<option value="">Tanlang</option>';
+                mahsulotlar.forEach(m => {
+                    const option = document.createElement('option');
+                    option.value = m.navi;
+                    option.textContent = `${m.navi} (${m.ombordagi_mahsulot} kg)`;
+                    select.appendChild(option);
+                });
+            } catch (err) {
+                const select = document.getElementById('mahsulotNomi');
+                if (select) select.innerHTML = '<option value="">Tanlang</option>';
+                console.error("Ombor select render qilishda xatolik:", err);
+            }
+        }
+    </script>
+</body>
+</html>
