@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Layout Project</title>
-    <link rel="stylesheet" href="/styles.css">
     <style>
         /* Rasxot header cell blue background */
         .excel-table th.rasxot-header {
@@ -25,6 +24,821 @@
         .excel-table td:nth-child(6) {
             background-color: #f5fdff;
         }
+
+/* --- inlined styles.css start --- */
+.update-btn {
+    position: fixed;
+    right: 32px;
+    bottom: 32px;
+    z-index: 2000;
+    padding: 14px 32px;
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: background 0.2s;
+
+}
+
+
+.update-btn:hover {
+    background: #1565c0;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+.main-btns {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 20px;
+    align-items: center;
+}
+
+.main-btns>div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main-btns button {
+    width: 300px;
+    height: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    color: #000000;
+    font-size: 1.1em;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease-in-out;
+}
+
+.main-btns button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+}
+
+.main-btns button:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.2);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #fff;
+    padding-top: 24px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    height: 100%;
+}
+
+
+.top-bar {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.menu-icon {
+    position: absolute;
+    left: 0;
+    top: 0;
+    cursor: pointer;
+    z-index: 2;
+    padding: 2px;
+}
+
+
+.center-title {
+    display: flex;
+    justify-content: center;
+    flex: 1;
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #444;
+}
+
+
+.side-modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 24px 24px 24px;
+}
+
+.side-modal .center-title {
+    text-align: center;
+    width: 100%;
+}
+
+#sideCreateBtn,
+#sideDeleteBtn {
+    width: 180px;
+    margin: 0 auto 8px auto;
+    display: block;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    background: #f9f9f9;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+}
+
+th,
+td {
+    border: 1px solid #222;
+    text-align: left;
+    font-size: 1em;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #eee;
+    border: 1px solid #aaa;
+    padding: 2px 8px;
+    cursor: pointer;
+}
+#yetkazuvchiCreateBtn {
+     margin-top: 24px;
+    width: 200px;
+    padding: 10px 0;
+    border: 1px solid #222;
+    background: #ffffff;
+    cursor: pointer;
+    font-size: 1em;
+    bottom: -43.7%;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgb(0, 0, 0);
+}
+.open-products-btn {
+    margin-top: 24px;
+    width: 200px;
+    padding: 10px 0;
+    border: 1px solid #222;
+    background: #ffffff;
+    cursor: pointer;
+    font-size: 1em;
+    position: absolute;
+    bottom: 30%;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgb(0, 0, 0);
+}
+
+.products-list {
+    margin: 24px 0 0 0;
+    padding: 0;
+    list-style: rgb(180, 61, 61)
+}
+
+.products-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.modal-flex {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    gap: 24px;
+}
+
+.products-section {
+    width: 300px;
+    min-width: 220px;
+    border-left: 1px solid #ddd;
+    padding-left: 24px;
+    height: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-end;
+}
+
+.table-section {
+    padding: 24px;
+    box-sizing: border-box;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.klentlar-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.klent-card {
+    position: relative;
+    background: #fafafa;
+    border: 1.5px solid #222;
+    border-radius: 10px;
+    padding: 18px 18px 18px 18px;
+    margin: 10px;
+    min-width: 200px;
+    min-height: 80px;
+    box-shadow: 0 2px 8px #0001;
+    font-size: 1.2em;
+    transition: box-shadow 0.2s;
+}
+
+.klent-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+    background: #f1f1f1;
+}
+
+.klent-card.selected {
+    border: 2px solid #3ec46d !important;
+    background: #e6ffe6 !important;
+    box-shadow: 0 0 6px #3ec46d33;
+}
+
+.klent-card .delete-card-btn {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 1em;
+    cursor: pointer;
+    line-height: 20px;
+    text-align: center;
+    padding: 0;
+    z-index: 2;
+    transition: background 0.2s;
+}
+
+
+.klent-info-excel {
+    margin: 0;
+    max-width: none;
+    width: 100vw;
+    height: 100vh;
+    min-height: 100vh;
+    min-width: 100vw;
+    background: #e4ecf7;
+    /* och kok */
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+    overflow: auto;
+}
+
+.excel-header {
+    display: flex;
+    align-items: center;
+    background: #e4ecf7;
+    border-bottom: 1px solid #b5cbe8;
+    padding: 8px 0;
+}
+
+.excel-karz {
+    flex: 2;
+    text-align: center;
+    font-weight: bold;
+    color: #444;
+}
+
+.excel-karz-sum {
+    flex: 1;
+    text-align: center;
+    background: #ffe066;
+    font-weight: bold;
+}
+
+.excel-karz-dollar {
+    flex: 1;
+    text-align: center;
+    background: #ffe066;
+    color: #d18f00;
+    font-weight: bold;
+}
+
+.excel-klent-row {
+    background: #b7d0ee;
+    color: #222;
+    font-weight: bold;
+    text-align: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #b5cbe8;
+}
+
+.excel-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0;
+    font-size: 10px;
+}
+
+.excel-table th,
+.excel-table td {
+    height: 30px;
+    border: 1px solid #b5cbe8;
+    padding: 0;
+    text-align: center;
+    font-size: 15px;
+    box-sizing: border-box;
+}
+
+
+#omborTable th, #omborTable td {
+    width: 100px;
+    min-width: 100px;
+    max-width: 100px;
+    height: 30px;
+    min-height: 30px;
+    max-height: 30px;
+    text-align: center;
+    padding: 0;
+    box-sizing: border-box;
+    font-size: 15px;
+}
+#omborTable th:first-child, #omborTable td:first-child {
+    width: 30px;
+    min-width: 30px;
+    max-width: 30px;
+    text-align: center;
+    font-size: 20px;
+}
+
+.excel-table th {
+    background: #e4ecf7;
+    color: #222;
+    font-weight: bold;
+}
+
+.excel-table td {
+    background: #f6faff;
+}
+
+.excel-table tr:nth-child(even) td {
+    background: #eaf2fb;
+}
+
+.excel-input {
+    width: 100%;
+    height: 30px;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-size: 18px;
+    font-family: inherit;
+    color: #222;
+    outline: none;
+    box-sizing: border-box;
+}
+
+
+
+.excel-input:focus {
+    background: #fffbe6;
+    border: 1px solid #ffe066;
+}
+
+.edit-mahsulot-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.edit-inputs-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.edit-mahsulot-form input {
+    padding: 6px 8px;
+    font-size: 15px;
+    border: 1px solid #e8cfb5;
+    border-radius: 3px;
+    background: #fff;
+    transition: background 0.2s;
+    min-width: 120px;
+}
+
+.edit-mahsulot-form input:focus {
+    outline: 2px solid #b7d0ee;
+}
+
+#omborTable tbody tr {
+    width: 100px;
+    height: 30px;
+}
+
+#omborTable {
+    width: 400px;
+    height: 30px;
+     margin-left: auto;
+    margin-right: auto;
+}
+
+#omborTable thead tr th {
+    width: 100px;
+    height: 50px;
+    text-align: center;
+    padding: 0;
+    box-sizing: border-box;
+    font-size: 20px;
+}
+
+.menu-icon {
+    position: absolute;
+    top: -20px;
+    right: 24px;
+    z-index: 2001;
+    cursor: pointer;
+}
+
+
+.side-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 350px;
+    height: 100vh;
+    background: #fff;
+    box-shadow: 2px 0 16px rgba(0,0,0,0.15);
+    z-index: 3000;
+    flex-direction: column;
+    align-items: flex-start;
+    animation: slideIn 0.3s;
+}
+
+@keyframes slideIn {
+    from { left: -400px; opacity: 0; }
+    to { left: 0; opacity: 1; }
+}
+
+.side-modal-content {
+    padding: 32px 24px;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.side-modal .close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+}
+
+body.side-modal-open::after {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.2);
+    z-index: 2999;
+    pointer-events: all;
+}
+
+.side-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+    margin-top: 12px;
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.side-btns .open-products-btn {
+    width: 200px;
+    font-size: 1em;
+    padding: 10px 0;
+    border: 1px solid #222;
+    background: #f9f9f9;
+    cursor: pointer;
+    margin: 0;
+    position: static;
+}
+
+#sideAddKlentForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 70vh;
+    gap: 18px;
+}
+
+#sideAddKlentForm label {
+    width: 100%;
+    text-align: left;
+    font-size: 1.1em;
+}
+
+
+#sideAddKlentForm input[type="text"] {
+    width: 200px;
+    padding: 6px 10px;
+    font-size: 1em;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    margin-top: 4px;
+    margin-bottom: 0;
+    box-sizing: border-box;
+}
+
+.side-btns .open-products-btn {
+    margin: 18px auto 0 auto;
+    position: static;
+}
+
+.ombor-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    min-height: 100vh;
+    min-width: 100vw;
+    background: #e4ecf7;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+}
+
+.ombor-card {
+    background: #fff;
+    border: 2.5px solid #1976d2;
+    border-radius: 24px;
+    box-shadow: 0 6px 32px #1976d233;
+    width: 420px;
+    min-height: 220px;
+    padding: 40px 32px 32px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    transition: box-shadow 0.2s, border 0.2s;
+    font-size: 2em;
+}
+
+.ombor-card:hover {
+    border: 3px solid #3ec46d;
+    box-shadow: 0 8px 40px #3ec46d33;
+}
+
+.ombor-card .ombor-title {
+    font-size: 2.2em;
+    font-weight: bold;
+    margin-bottom: 18px;
+    color: #1976d2;
+}
+
+.ombor-card .ombor-info {
+    font-size: 1.4em;
+    margin-bottom: 8px;
+    color: #444;
+}
+.switch {
+    position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 22px;
+  vertical-align: middle;
+  margin: 0 8px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+  border-radius: 22px;
+  transition: .4s;
+  width: 44px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #fff;
+  border-radius: 50%;
+  transition: .4s;
+}
+.switch input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+.bolim_tanlov {
+  display: flex;
+  align-items: center;
+  justify-self: center;
+  width: 100%;
+  gap: 12px;
+  background: none;
+}
+
+.ombor-select {
+    width: 200px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    background: #222;
+    color: #fff;
+    font-size: 1.1em;
+    appearance: none;
+    position: relative;
+    margin-bottom: 12px;
+}
+.ombor-select:focus {
+    outline: 2px solid #1976d2;
+}
+
+#omborModal .modal-content {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+#omborModal .table-section {
+    flex: 1 1 auto;
+    overflow: auto;
+    height: 100%;
+}
+
+#omborTable {
+    width: 100%;
+    font-size: 1.1em;
+}
+
+#omborTable th, #omborTable td {
+    text-align: left;
+}
+
+
+.modal-content-user_add {
+    background: #fff;
+    box-shadow: 0 2px 10px rgb(0, 0, 0);
+       padding: 32px 24px;
+    width: 350px;
+    height: 100%;
+    box-sizing: border-box;
+    position: absolute;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modal-content_user_add {
+    background: #fff;
+    box-shadow: 0 2px 10px rgb(0, 0, 0);
+       padding: 32px 24px;
+    width: 350px;
+    height: 100%;
+    box-sizing: border-box;
+    position: absolute;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#klentForm {
+    height: 50%;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+}
+
+#yetkazuvchiForm {
+    height: 45.5%;
+   display: flex;
+   position: absolute;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+}
+
+#klentForm input[type="text"], #klentForm input[type="number"] {
+   width: 100%;
+   padding: 12px 16px;
+   border: 1px solid #bbb;
+   border-radius: 8px;
+   background: #fff;
+   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+   margin-bottom: 12px;
+}
+
+#yetkazuvchiForm input[type="text"], #yetkazuvchiForm input[type="number"] {
+   width: 100%;
+   padding: 12px 16px;
+   border: 1px solid #bbb;
+   border-radius: 8px;
+   background: #fff;
+   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+   margin-bottom: 12px;
+}
+
+
+.yangilash_btn{
+    position: absolute;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgb(0, 0, 0);
+    right: 2%;
+    bottom: 10%;
+    width: 200px;
+    height: 40px;
+    font-size: 19px;
+}
+
+.tozalash_btn{
+     position: absolute;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgb(0, 0, 0);
+    right: 2%;
+    bottom: 3%;     
+    width: 200px;
+    height: 40px;
+    font-size: 19px;
+}
+
+.delete-card-btn{
+    background-color: red;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- inlined styles.css end --- */
     </style>
 </head>
 <body>
