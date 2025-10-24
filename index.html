@@ -30,7 +30,9 @@
 <body>
     <script>
         // Global API base used by all inline scripts. Override by setting window.API_BASE before this script.
-        const BASE_URL = (window.API_BASE && window.API_BASE.replace(/\/$/, '')) || 'http://localhost:5003';
+        // When not provided, default to the current origin so the deployed site talks to its own backend
+        // instead of trying to call http://localhost:5003 from a user's browser.
+        const BASE_URL = (window.API_BASE && window.API_BASE.replace(/\/$/, '')) || window.location.origin;
     </script>
     <div class="main-btns">
         <div>
